@@ -4,7 +4,9 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NUnityPackage.Core;
@@ -32,13 +34,29 @@ namespace NUnityPackage.Controllers
 		// 	return entries.ToArray();
 		// }
 
+		// [HttpGet]
+		// public async Task<ActionResult> Get(string packageName)
+		// {
+			// var p = await UnityPackageBuilder.Package();
+			// return File(gzipStream, "application/zip", "test.gzip");
+			// var bytes = await _nuget.GetDll(packageName);
+			// if (bytes != null)
+			// 	return File(bytes, "application/octet-stream", packageName + ".dll");
+			// return null;
+		// }
+
 		[HttpGet]
-		public async Task<ActionResult> Get(string packageName)
+		public async void Get(string packageName)
 		{
-			var bytes = await _nuget.GetDll(packageName);
-			if (bytes != null)
-				return File(bytes, "application/octet-stream", packageName + ".dll");
-			return null;
+			HttpContext.Response.ContentType = "application/x-gzip";
+			var xml = "<xml/>";
+			using (var gzipStream = new GZipStream(HttpContext.Response.Body, CompressionMode.Compress))
+			{
+				HttpContext.Response.ContentType = "application/zip";
+				// HttpContext.Response.Headers.Add();
+				var buffer = Encoding.UTF8.GetBytes(xml);
+				await gzipStream.WriteAsync(buffer, 0, buffer.Length);
+			}
 		}
 	}
 }

@@ -32,7 +32,6 @@ namespace NUnityPackage.Core
 		
 		public async Task<byte[]> GetDll(string packageName)
 		{
-			var dep = await GetSpecification(packageName);
 			using var archive = await GetArchive(packageName);
 			foreach (var entry in archive.Entries)
 			{
