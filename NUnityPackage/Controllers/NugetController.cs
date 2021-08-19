@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using NUnityPackage.Core;
 
 namespace NUnityPackage.Controllers
 {
@@ -15,6 +16,7 @@ namespace NUnityPackage.Controllers
 	public class NugetController : ControllerBase
 	{
 		private readonly ILogger<NugetController> _logger;
+		private readonly NugetApi _nuget = new NugetApi();
 
 		public NugetController(ILogger<NugetController> logger)
 		{
@@ -29,33 +31,14 @@ namespace NUnityPackage.Controllers
 		// 	entries.AddRange(archive.Entries.Select(e => e.FullName));
 		// 	return entries.ToArray();
 		// }
-		
+
 		[HttpGet]
 		public async Task<ActionResult> Get(string packageName)
 		{
-			using var archive = await GetArchive(packageName);
-			foreach (var entry in archive.Entries)
-			{
-				if (entry.Name.EndsWith(".dll") && entry.Name.Contains(packageName, StringComparison.OrdinalIgnoreCase))
-				{
-					await using Stream stream = entry.Open();
-					byte[] bytes;
-					await using var ms = new MemoryStream();
-					await stream.CopyToAsync(ms);
-					bytes = ms.ToArray();
-					return File(bytes, "application/octet-stream", entry.Name);
-				}
-			}
-
+			var bytes = await _nuget.GetDll(packageName);
+			if (bytes != null)
+				return File(bytes, "application/octet-stream", packageName + ".dll");
 			return null;
-		}
-
-		private static async Task<ZipArchive> GetArchive(string name)
-		{
-			using var client = new WebClient();
-			var data = await client.DownloadDataTaskAsync(new Uri("https://www.nuget.org/api/v2/package/" + name));
-			var archive = new ZipArchive(new MemoryStream(data));
-			return archive;
 		}
 	}
 }
