@@ -2,14 +2,37 @@
 using System.IO;
 using System.IO.Compression;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace NUnityPackage.Core
 {
 	public class NugetApi : IDisposable
 	{
+		public async Task<NugetSpecification> GetSpecification(string packageName)
+		{
+			using var archive = await GetArchive(packageName);
+			foreach (var entry in archive.Entries)
+			{
+				if (entry.Name.EndsWith(".nuspec"))
+				{
+					XmlSerializer serializer = new XmlSerializer(typeof(NugetSpecification));
+					await using var stream = entry.Open();
+					var spec = (NugetSpecification)serializer.Deserialize(stream);
+					
+					// var reader = new StreamReader(entry.Open());
+					// var text = await reader.ReadToEndAsync();
+					return spec;
+				}
+			}
+
+			return null;
+		}
+		
 		public async Task<byte[]> GetDll(string packageName)
 		{
+			var dep = await GetSpecification(packageName);
 			using var archive = await GetArchive(packageName);
 			foreach (var entry in archive.Entries)
 			{
@@ -26,10 +49,13 @@ namespace NUnityPackage.Core
 			return null;
 		}
 
-		private async Task<ZipArchive> GetArchive(string name)
+		private async Task<ZipArchive> GetArchive(string packageName, string packageVersion = null)
 		{
 			using var client = new WebClient();
-			var data = await client.DownloadDataTaskAsync(new Uri("https://www.nuget.org/api/v2/package/" + name));
+			var url = "https://www.nuget.org/api/v2/package/" + packageName;
+			if (packageVersion != null)
+				url += "/" + packageVersion;
+			var data = await client.DownloadDataTaskAsync(new Uri(url));
 			var archive = new ZipArchive(new MemoryStream(data));
 			return archive;
 		}
