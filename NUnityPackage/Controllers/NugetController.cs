@@ -18,7 +18,6 @@ namespace NUnityPackage.Controllers
 	public class NugetController : ControllerBase
 	{
 		private readonly ILogger<NugetController> _logger;
-		private readonly NugetApi _nuget = new NugetApi();
 
 		public NugetController(ILogger<NugetController> logger)
 		{
@@ -37,13 +36,18 @@ namespace NUnityPackage.Controllers
 		[HttpGet]
 		public async Task<ActionResult> Get(string packageName)
 		{
-			var dllStream = await _nuget.GetDllStream(packageName);
-			var p = await UnityPackageBuilder.Package(dllStream);
-			return File(p, "application/zip", "test.tgz");
-			var bytes = await _nuget.GetDll(packageName);
-			if (bytes != null)
-				return File(bytes, "application/octet-stream", packageName + ".dll");
-			return null;
+			using (var package = new NugetPackage(packageName))
+			{
+				var spec = await package.GetSpecification();
+				var dllStream = await package.GetDllStream();
+				var name = $"com.{spec.metadata.owners.Split(',').FirstOrDefault()}.{packageName.Replace('.', '-')}".ToLowerInvariant();
+				var p = await UnityPackageBuilder.Package(name, spec.metadata.version, spec.metadata.title ?? packageName, packageName + ".dll", dllStream);
+				return File(p, "application/zip", name + ".tgz");
+			}
+			// var bytes = await _nuget.GetDll(packageName);
+			// if (bytes != null)
+			// 	return File(bytes, "application/octet-stream", packageName + ".dll");
+			// return null;
 		}
 
 		// [HttpGet]

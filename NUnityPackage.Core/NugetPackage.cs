@@ -8,11 +8,21 @@ using System.Xml.Serialization;
 
 namespace NUnityPackage.Core
 {
-	public class NugetApi : IDisposable
+	public class NugetPackage : IDisposable
 	{
-		public async Task<NugetSpecification> GetSpecification(string packageName)
+		public readonly string name;
+		public readonly string version;
+		private ZipArchive _archive;
+
+		public NugetPackage(string name, string version = null)
 		{
-			using var archive = await GetArchive(packageName);
+			this.name = name;
+			this.version = version;
+		}
+		
+		public async Task<NugetSpecification> GetSpecification()
+		{
+			var archive = await GetArchive();
 			foreach (var entry in archive.Entries)
 			{
 				if (entry.Name.EndsWith(".nuspec"))
@@ -31,12 +41,12 @@ namespace NUnityPackage.Core
 		}
 		
 		
-		public async Task<MemoryStream> GetDllStream(string packageName)
+		public async Task<MemoryStream> GetDllStream()
 		{
-			using var archive = await GetArchive(packageName);
+			var archive = await GetArchive();
 			foreach (var entry in archive.Entries)
 			{
-				if (entry.Name.EndsWith(".dll") && entry.Name.Contains(packageName, StringComparison.OrdinalIgnoreCase))
+				if (entry.Name.EndsWith(".dll") && entry.Name.Contains(name, StringComparison.OrdinalIgnoreCase))
 				{
 					await using var stream = entry.Open();
 					var ms = new MemoryStream();
@@ -48,9 +58,9 @@ namespace NUnityPackage.Core
 			return null;
 		}
 		
-		public async Task<byte[]> GetDll(string packageName)
+		public async Task<byte[]> GetDll()
 		{
-			var stream = await GetDllStream(packageName);
+			var stream = await GetDllStream();
 			if (stream != null)
 			{
 				await using (stream)
@@ -63,19 +73,21 @@ namespace NUnityPackage.Core
 			return null;
 		}
 
-		private async Task<ZipArchive> GetArchive(string packageName, string packageVersion = null)
+		private async Task<ZipArchive> GetArchive()
 		{
+			if (_archive != null) return _archive;
 			using var client = new WebClient();
-			var url = "https://www.nuget.org/api/v2/package/" + packageName;
-			if (packageVersion != null)
-				url += "/" + packageVersion;
+			var url = "https://www.nuget.org/api/v2/package/" + name;
+			if (version != null)
+				url += "/" + version;
 			var data = await client.DownloadDataTaskAsync(new Uri(url));
-			var archive = new ZipArchive(new MemoryStream(data));
-			return archive;
+			_archive = new ZipArchive(new MemoryStream(data));
+			return _archive;
 		}
 
 		public void Dispose()
 		{
+			_archive?.Dispose();
 		}
 	}
 }
