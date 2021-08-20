@@ -38,7 +38,7 @@ namespace NUnityPackage.Controllers
 		public async Task<ActionResult> Get(string packageName)
 		{
 			var p = await UnityPackageBuilder.Package();
-			return File(p, "application/zip", "test.gzip");
+			return File(p, "application/zip", "test.tgz");
 			var bytes = await _nuget.GetDll(packageName);
 			if (bytes != null)
 				return File(bytes, "application/octet-stream", packageName + ".dll");
