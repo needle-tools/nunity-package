@@ -30,7 +30,8 @@ namespace NUnityPackage.Core
 			return null;
 		}
 		
-		public async Task<byte[]> GetDll(string packageName)
+		
+		public async Task<MemoryStream> GetDllStream(string packageName)
 		{
 			using var archive = await GetArchive(packageName);
 			foreach (var entry in archive.Entries)
@@ -38,9 +39,23 @@ namespace NUnityPackage.Core
 				if (entry.Name.EndsWith(".dll") && entry.Name.Contains(packageName, StringComparison.OrdinalIgnoreCase))
 				{
 					await using var stream = entry.Open();
-					await using var ms = new MemoryStream();
+					var ms = new MemoryStream();
 					await stream.CopyToAsync(ms);
-					var bytes = ms.ToArray();
+					return ms;
+				}
+			}
+
+			return null;
+		}
+		
+		public async Task<byte[]> GetDll(string packageName)
+		{
+			var stream = await GetDllStream(packageName);
+			if (stream != null)
+			{
+				await using (stream)
+				{
+					var bytes = stream.ToArray();
 					return bytes;
 				}
 			}

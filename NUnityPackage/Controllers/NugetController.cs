@@ -37,7 +37,8 @@ namespace NUnityPackage.Controllers
 		[HttpGet]
 		public async Task<ActionResult> Get(string packageName)
 		{
-			var p = await UnityPackageBuilder.Package();
+			var dllStream = await _nuget.GetDllStream(packageName);
+			var p = await UnityPackageBuilder.Package(dllStream);
 			return File(p, "application/zip", "test.tgz");
 			var bytes = await _nuget.GetDll(packageName);
 			if (bytes != null)

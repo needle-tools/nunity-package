@@ -1,9 +1,14 @@
 ﻿namespace NUnityPackage.Core
 {
 	public class UnityMetaHelper
-  {
-    public const string pluginDllMetaTemplate = @"fileFormatVersion: 2
-guid: <guid>
+	{
+    public static string GetMeta(string filePath)
+    {
+      return pluginDllMetaTemplate;
+    }
+    
+		public const string pluginDllMetaTemplate = @"fileFormatVersion: 2
+guid: 305c24821ff995c408403969a18e2c77
 PluginImporter:
   externalObjects: {}
   serializedVersion: 2
@@ -41,5 +46,5 @@ PluginImporter:
   assetBundleName: 
   assetBundleVariant: 
 ";
-  }
+	}
 }
