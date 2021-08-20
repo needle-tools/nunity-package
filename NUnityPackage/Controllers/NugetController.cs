@@ -40,8 +40,21 @@ namespace NUnityPackage.Controllers
 			{
 				var spec = await package.GetSpecification();
 				var dllStream = await package.GetDllStream();
-				var name = $"com.{spec.metadata.owners.Split(',').FirstOrDefault()}.{packageName.Replace('.', '-')}".ToLowerInvariant();
-				var p = await UnityPackageBuilder.Package(name, spec.metadata.version, spec.metadata.title ?? packageName, packageName + ".dll", dllStream);
+				var name = $"com.{spec.metadata.owners.Replace(",", "-")}.{packageName.Replace('.', '-')}".ToLowerInvariant();
+
+				var meta = spec.metadata;
+				var unityPackage = new UnityPackage();
+				unityPackage.name = name;
+				unityPackage.version =  meta.version;
+				unityPackage.displayName = meta.title ?? packageName;
+				unityPackage.description = meta.description;
+				unityPackage.author = meta.authors;
+				unityPackage.changelog = meta.releaseNotes;
+				unityPackage.license = meta.license;
+				unityPackage.licensesUrl = meta.licenseUrl;
+				unityPackage.documentationUrl = meta.projectUrl;
+				
+				var p = await UnityPackageBuilder.Package(unityPackage, packageName + ".dll", dllStream);
 				return File(p, "application/zip", name + ".tgz");
 			}
 			// var bytes = await _nuget.GetDll(packageName);

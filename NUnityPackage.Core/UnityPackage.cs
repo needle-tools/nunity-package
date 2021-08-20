@@ -8,5 +8,11 @@ namespace NUnityPackage.Core
 		public string name;
 		public string version;
 		public string displayName;
+		public string description;
+		public string author;
+		public string changelog;
+		public string documentationUrl;
+		public string license;
+		public string licensesUrl;
 	}
 }

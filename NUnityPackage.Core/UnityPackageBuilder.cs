@@ -21,20 +21,15 @@ namespace NUnityPackage.Core
 	{
 		private static readonly byte[] writeBuffer = new byte[32 * 1024];
 		
-		public static async Task<byte[]> Package(string packageName, string packageVersion, string displayName, string dllName, MemoryStream dllStream)
+		public static async Task<byte[]> Package(UnityPackage package, string dllName, MemoryStream dllStream)
 		{
 			var zipStream = File.Create("package.tgz");
 			var gzipStream = new GZipStream(zipStream, CompressionLevel.Optimal);
 			await using var archive = new TarOutputStream(gzipStream, Encoding.Default);
 			
-			var package = new UnityPackage();
-			package.name = packageName;
-			package.version = packageVersion;
-			package.displayName = displayName;
-			
 			var dir = Directory.CreateDirectory("package");
 			var jsonPath = "package/package.json";
-			await WriteFile(archive, jsonPath, JsonConvert.SerializeObject(package));
+			await WriteFile(archive, jsonPath, JsonConvert.SerializeObject(package, Formatting.Indented));
 			await WriteFile(archive, jsonPath + ".meta", UnityMetaHelper.GetMeta("305c24821ff995c408403969a18e2c79"));
 
 			var dllPath = "package/" + dllName + ".dll";
