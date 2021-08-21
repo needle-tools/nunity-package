@@ -12,9 +12,5 @@
     <ItemGroup>
       <ProjectReference Include="../NUnityPackage.Core/NUnityPackage.Core.csproj" />
     </ItemGroup>
-    
-    <ItemGroup>
-        <None Include="app.yaml" CopyToOutputDirectory="Always" />
-    </ItemGroup>
 
 </Project>
