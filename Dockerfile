@@ -6,7 +6,7 @@ WORKDIR /app
 # Install production dependencies.
 # Copy csproj and restore as distinct layers.
 COPY **/*.csproj ./
-RUN dotnet restore
+RUN dotnet restore ./NUnityPackage.sln
 
 # Copy local code to the container image.
 COPY . ./
