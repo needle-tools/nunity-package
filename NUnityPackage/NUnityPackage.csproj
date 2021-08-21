@@ -10,7 +10,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\NUnityPackage.Core\NUnityPackage.Core.csproj" />
+      <ProjectReference Include="../NUnityPackage.Core/NUnityPackage.Core.csproj" />
     </ItemGroup>
     
     <ItemGroup>
