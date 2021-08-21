@@ -14,7 +14,7 @@ using NUnityPackage.Core;
 namespace NUnityPackage.Controllers
 {
 	[ApiController]
-	[Route("[controller]/{packageName?}")]
+	[Route("[controller]")]
 	public class NugetController : ControllerBase
 	{
 		private readonly ILogger<NugetController> _logger;
@@ -33,7 +33,14 @@ namespace NUnityPackage.Controllers
 		// 	return entries.ToArray();
 		// }
 
+
 		[HttpGet]
+		public async Task<string> Get()
+		{
+			return "hello nuget";
+		}
+
+		[HttpGet("{packageName}")]
 		public async Task<ActionResult> Get(string packageName)
 		{
 			using (var package = new NugetPackage(packageName))
