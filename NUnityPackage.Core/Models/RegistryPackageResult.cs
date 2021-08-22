@@ -32,11 +32,13 @@ namespace NUnityPackage.Core
 		{
 			if (res == null) return null;
 			var rr = new RegistryPackageResult();
-			if (res.count <= 0) return rr;
+			if (res.count <= 0 || res.items == null) return rr;
 			foreach (var it in res.items)
 			{
+				if (it.items == null) continue;
 				foreach (var p in it.items)
 				{
+					if (p == null) continue;
 					var details = p.catalogEntry;
 					var id = details.id.ToLowerInvariant();
 					rr.name = id;
@@ -46,7 +48,7 @@ namespace NUnityPackage.Core
 						{
 							name = id,
 							description = details.description,
-							displayName = details.title,
+							displayName = details.title ?? details.id,
 							version = details.version,
 							dist = new RegistryPackageResult.Version.Dist()
 							{
