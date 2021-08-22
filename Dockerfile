@@ -23,4 +23,4 @@ WORKDIR /app
 COPY --from=build /app/out ./
 
 # Run the web service on container startup.
-ENTRYPOINT ["dotnet", "NUnityPackage.exe"]
+ENTRYPOINT ["dotnet", "NUnityPackage.dll"]
