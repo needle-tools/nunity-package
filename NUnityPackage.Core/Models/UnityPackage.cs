@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace NUnityPackage.Core
@@ -15,6 +16,7 @@ namespace NUnityPackage.Core
 		public string documentationUrl;
 		public string license;
 		public string licensesUrl;
+		public Dictionary<string, string> dependencies;
 
 		[JsonIgnore]
 		public string id => name + "-" + version;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
@@ -13,6 +14,7 @@ using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Semver;
 
 namespace NUnityPackage.Core
 {
@@ -52,11 +54,49 @@ namespace NUnityPackage.Core
 			unityPackage.license = meta.license;
 			unityPackage.licensesUrl = meta.licenseUrl;
 			unityPackage.documentationUrl = meta.projectUrl;
+			AddRelevantDependencies(spec, unityPackage, logger);
 
 			logger?.LogInformation("Downloading " + packageName + " as " + packageId);
 			var p = await BuildPackageTgz(unityPackage, package, cache, packageId);
 			logger?.LogInformation("Return file: " + packageId + ", " + p.Length + " bytes");
 			return p;
+		}
+
+		private static void AddRelevantDependencies(NugetSpecification spec, UnityPackage package, ILogger logger = null)
+		{
+			void AddDependency(TargetFramework target)
+			{
+				// e.g. System.Drawing 1.0.0-beta004 https://www.nuget.org/packages/CoreCompat.System.Drawing/1.0.0-beta004
+				if (target.dependency == null) return;
+				foreach (var dep in target.dependency)
+				{
+					var id = dep.id;
+					var version = dep.version;
+					if (SemVersion.TryParse(version, out var ver))
+					{
+						// TODO: parse [4.1.1-rc2-24027, ) to proper version string
+						package.dependencies ??= new Dictionary<string, string>();
+						if (!package.dependencies.ContainsKey(id))
+							package.dependencies.Add(id, version);
+					}
+					else throw new Exception("Dependency is no semver format: " + version + " in " + package.id);
+				}
+			}
+
+			if (spec != null && spec.metadata != null)
+			{
+				foreach (var dep in spec.metadata.dependencies)
+				{
+					switch (dep.targetFramework)
+					{
+						case ".NETStandard1.3":
+						case ".NETStandard2.0":
+						case ".NETFramework4.5":
+							AddDependency(dep);
+							break;
+					}
+				}
+			}
 		}
 
 		private static async Task<byte[]> BuildPackageTgz(UnityPackage package, NugetPackage nugetPackage, Caching cache, string cacheName)
@@ -87,7 +127,7 @@ namespace NUnityPackage.Core
 			var dllStream = await nugetPackage.GetDllStream();
 			if (dllStream != null)
 			{
-				var dllName = nugetPackage.name;
+				var dllName = package.displayName;
 				if (!dllName.EndsWith(".dll")) dllName += ".dll";
 				var dllPathZip = "package/" + dllName;
 				var dllPathLocal = tempDir + dllPathZip;
@@ -105,13 +145,13 @@ namespace NUnityPackage.Core
 				var localPath = $"{tempDir}package/{file.Name}";
 				file.ExtractToFile(localPath);
 				// var fileStream = file.Open();
-				await using(var fs = File.OpenRead(localPath))
+				await using (var fs = File.OpenRead(localPath))
 					WriteFile(archive, fs, $"package/{file.Name}");
 				// WriteFile(archive, localPath, file.Name);
 				await WriteFile(archive, UnityMetaHelper.GetMeta(GetGuidFromFilePath(localPath)), $"{localPath}.meta", $"package/{file.Name}.meta");
 			}
 
-			
+
 			archive.IsStreamOwner = true;
 			archive.Close();
 			var bytes = await File.ReadAllBytesAsync(localPackagePath);
@@ -167,7 +207,7 @@ namespace NUnityPackage.Core
 			sr.Close();
 			File.Delete(localPath);
 		}
-		
+
 		private static void WriteFile(TarOutputStream archive, string localPath, string zipPath)
 		{
 			var file = File.OpenRead(localPath);
@@ -185,7 +225,7 @@ namespace NUnityPackage.Core
 		{
 			using var ms = new MemoryStream();
 			stream.CopyTo(ms);
-			
+
 			var entry = TarEntry.CreateTarEntry(zipPath);
 			entry.Size = ms.Length;
 			archive.PutNextEntry(entry);
