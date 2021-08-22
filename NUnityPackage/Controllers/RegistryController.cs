@@ -11,8 +11,7 @@ namespace NUnityPackage.Controllers
 	public class RegistryController : ControllerBase
 	{
 		private readonly ILogger _logger;
-		private readonly Caching caching = new Caching();
-
+		
 		public RegistryController(ILogger<RegistryController> logger)
 		{
 			_logger = logger;
@@ -52,7 +51,7 @@ namespace NUnityPackage.Controllers
 				return new BadRequestResult();
 			}
 
-			const int maxVersions = 200;
+			var maxVersions = Globals.IsDevelopmentEnvironment ? 2 : 200;
 			var res = await packageRes.ToRegistryPackageResult(maxVersions, url, Globals.Cache, _logger);
 			var json = string.Empty;
 			if (res != null)

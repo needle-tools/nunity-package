@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
@@ -6,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.Extensions.Logging;
 
 namespace NUnityPackage.Core
@@ -63,7 +65,24 @@ namespace NUnityPackage.Core
 		}
 		
 		
-		public async Task<MemoryStream> GetDllStream(ILogger logger = null)
+
+		public async IAsyncEnumerable<ZipArchiveEntry> GetLicenseFiles()
+		{
+			var archive = await GetArchive();
+			var comp = StringComparison.InvariantCultureIgnoreCase;
+			foreach (var entry in archive.Entries)
+			{
+				if (
+					entry.Name.Equals("LICENSE.TXT", comp)
+					|| entry.Name.Equals("THIRD-PARTY-NOTICES.TXT", comp)
+				)
+				{
+					yield return entry;
+				}
+			}
+		}
+
+		public async Task<MemoryStream> GetDllStream()
 		{
 			var archive = await GetArchive();
 			foreach (var entry in archive.Entries)
