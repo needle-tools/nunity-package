@@ -65,27 +65,32 @@ namespace NUnityPackage.Core
 
 			var tempDir = "temp/" + packageName + "-" + DateTime.UtcNow.ToFileTime();
 			if (!Directory.Exists(tempDir)) Directory.CreateDirectory(tempDir);
-			var localPackagePath = tempDir + "/" + packageName;
+			if (!tempDir.EndsWith("/")) tempDir += "/";
+			
+			var localPackagePath = tempDir + packageName;
 
 			var zipStream = File.Create(localPackagePath);
 			var gzipStream = new GZipStream(zipStream, CompressionLevel.Optimal);
 			await using var archive = new TarOutputStream(gzipStream, Encoding.Default);
 
 			var dir = Directory.CreateDirectory(tempDir + "/package");
-			var jsonPath = tempDir + "/package/package.json";
+			
+			var jsonPathZip = "package/package.json";
+			var jsonPathLocal = tempDir + jsonPathZip;
 			var json = JsonConvert.SerializeObject(package, Formatting.Indented, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
-			await WriteFile(archive, jsonPath, json);
-			await WriteFile(archive, jsonPath + ".meta", UnityMetaHelper.GetMeta("305c24821ff995c408403969a18e2c79"));
+			await WriteFile(archive, json, jsonPathLocal, jsonPathZip);
+			await WriteFile(archive, UnityMetaHelper.GetMeta(GetGuidFromContent(json)), $"{jsonPathLocal}.meta", $"{jsonPathZip}.meta");
 
-			var dllPath = tempDir + "/package/" + dllName + ".dll";
-			var entry = TarEntry.CreateTarEntry(dllPath);
+			if (!dllName.EndsWith(".dll")) dllName += ".dll";
+			var dllPathZip = "package/" + dllName;
+			var dllPathLocal = tempDir + dllPathZip;
+			var entry = TarEntry.CreateTarEntry(dllPathZip);
 			entry.Size = dllStream.Length;
 			archive.PutNextEntry(entry);
 			dllStream.Position = 0;
 			StreamUtils.Copy(dllStream, archive, writeBuffer);
 			archive.CloseEntry();
-
-			await WriteFile(archive, dllPath + ".meta", UnityMetaHelper.GetMeta());
+			await WriteFile(archive, UnityMetaHelper.GetMeta(GetGuidFromStream(dllStream)), $"{dllPathLocal}.meta", $"{dllPathZip}.meta");
 
 			dir.Delete(true);
 
@@ -102,30 +107,38 @@ namespace NUnityPackage.Core
 
 			if (File.Exists(localPackagePath))
 				File.Delete(localPackagePath);
-			if (Directory.Exists(tempDir)) Directory.Delete(tempDir);
+			if (Directory.Exists(tempDir)) 
+				Directory.Delete(tempDir);
+			
 			return bytes;
 		}
-
-		public static string GetHash(byte[] bytes)
+		
+		private static string GetGuidFromContent(string content)
 		{
-			using var algo = SHA1.Create();
-			var data = algo.ComputeHash(bytes);
-			var sBuilder = new StringBuilder();
-			foreach (var t in data)
-			{
-				sBuilder.Append(t.ToString("x2"));
-			}
-
-			return sBuilder.ToString();
+			return HashUtils.GetMd5Hash(Encoding.UTF8.GetBytes(content));
 		}
 
-		private static async Task WriteFile(TarOutputStream archive, string path, string content)
+		private static string GetGuidFromFilePath(string path)
 		{
-			var file = File.Create(path);
+			return HashUtils.GetMd5Hash(File.ReadAllBytes(path));
+		}
+
+		private static string GetGuidFromStream(Stream stream)
+		{
+			using(var mem = new MemoryStream())
+			{
+				stream.CopyTo(mem);
+				return HashUtils.GetMd5Hash(mem.ToArray());
+			}
+		}
+
+		private static async Task WriteFile(TarOutputStream archive, string content, string localPath, string zipPath)
+		{
+			var file = File.Create(localPath);
 			await using var sr = new StreamWriter(file) { AutoFlush = true };
 			await sr.WriteAsync(content);
 
-			var entry = TarEntry.CreateTarEntry(path);
+			var entry = TarEntry.CreateTarEntry(zipPath);
 			entry.Size = file.Length;
 			archive.PutNextEntry(entry);
 			file.Position = 0;
@@ -133,7 +146,7 @@ namespace NUnityPackage.Core
 			archive.CloseEntry();
 
 			sr.Close();
-			File.Delete(path);
+			File.Delete(localPath);
 		}
 	}
 }

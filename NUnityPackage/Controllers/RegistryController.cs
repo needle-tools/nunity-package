@@ -36,8 +36,6 @@ namespace NUnityPackage.Controllers
 			var json = JsonConvert.SerializeObject(rr, Formatting.Indented);
 			Response.ContentType = "application/json";
 			return Content(json);
-			// var res = new RegistrySearchResult();
-			// return JsonConvert.SerializeObject(res, Formatting.Indented);
 		}
 
 
@@ -54,7 +52,8 @@ namespace NUnityPackage.Controllers
 				return new BadRequestResult();
 			}
 
-			var res = await packageRes.ToRegistryPackageResult(url, Globals.Cache, _logger);
+			const int maxVersions = 200;
+			var res = await packageRes.ToRegistryPackageResult(maxVersions, url, Globals.Cache, _logger);
 			var json = string.Empty;
 			if (res != null)
 			{

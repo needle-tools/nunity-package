@@ -31,7 +31,11 @@ namespace NUnityPackage.Core
 
 	public static class RegistryPackageResultExtensions
 	{
-		public static async Task<RegistryPackageResult> ToRegistryPackageResult(this NugetPackageRegistrationResult res, string downloadEndpoint, Caching cache, ILogger logger = null)
+		public static async Task<RegistryPackageResult> ToRegistryPackageResult(this NugetPackageRegistrationResult res,
+			int maxVersions,
+			string downloadEndpoint,
+			Caching cache,
+			ILogger logger = null)
 		{
 			if (res == null) return null;
 			var rr = new RegistryPackageResult();
@@ -41,14 +45,18 @@ namespace NUnityPackage.Core
 			foreach (var it in res.items)
 			{
 				if (it.items == null) continue;
+				if (rr.versions.Count >= maxVersions) break;
 				foreach (var p in it.items)
 				{
 					if (p == null) continue;
+					if (rr.versions.Count >= maxVersions) break;
 					var details = p.catalogEntry;
 					var id = details.id.ToLowerInvariant();
 					rr.name = id;
 					if (!rr.versions.ContainsKey(details.version))
 					{
+						if (rr.versions.Count >= maxVersions) break;
+
 						var fileId = $"{id}-{details.version}.tgz";
 						var sha = await Shasum.TryGet(fileId, cache);
 
@@ -62,7 +70,7 @@ namespace NUnityPackage.Core
 								continue;
 							}
 						}
-						
+
 						var dist = new RegistryPackageResult.Version.Dist()
 						{
 							tarball = downloadEndpoint + id + "/-/" + fileId,
@@ -81,11 +89,8 @@ namespace NUnityPackage.Core
 							version = details.version,
 							dist = dist
 						};
-						
 
 
-						
-						
 						rr.versions.Add(details.version, inst);
 					}
 				}

@@ -19,7 +19,7 @@ namespace NUnityPackage.Core
 
 		public Shasum(byte[] data)
 		{
-			shasum = UnityPackageBuilder.GetHash(data);
+			shasum = HashUtils.GetSha1Hash(data);
 		}
 
 		public Shasum(string shasum)
