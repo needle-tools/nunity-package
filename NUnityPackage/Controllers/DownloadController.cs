@@ -14,7 +14,7 @@ using NUnityPackage.Core;
 namespace NUnityPackage.Controllers
 {
 	[ApiController]
-	[Route("[controller]")]
+	[Route("")]
 	public class DownloadController : ControllerBase
 	{
 		private readonly ILogger<DownloadController> _logger;
@@ -24,26 +24,10 @@ namespace NUnityPackage.Controllers
 			_logger = logger;
 		}
 
-		// [HttpGet]
-		// public async Task<string[]> Get(string packageName)
-		// {
-		// 	var archive = await GetArchive(packageName);
-		// 	var entries = new List<string>();
-		// 	entries.AddRange(archive.Entries.Select(e => e.FullName));
-		// 	return entries.ToArray();
-		// }
-
-
-		[HttpGet]
-		public async Task<string> Get()
+		[HttpGet("{packageName}/-/{packageId}")]
+		public async Task<ActionResult> Get(string packageName, string packageId)
 		{
-			return "hello nuget";
-		}
-
-		[HttpGet("{packageName}")]
-		public async Task<ActionResult> Get(string packageName)
-		{
-			_logger.LogInformation("Download " + packageName);
+			_logger.LogInformation("Download " + packageId);
 			
 			using (var package = new NugetPackage(packageName))
 			{
@@ -62,10 +46,10 @@ namespace NUnityPackage.Controllers
 				unityPackage.licensesUrl = meta.licenseUrl;
 				unityPackage.documentationUrl = meta.projectUrl;
 
-				var resultName = packageName + "-" + unityPackage.version + ".tgz";
-				_logger.LogInformation("Downloading " + packageName + " as " + resultName);
+				_logger.LogInformation("Downloading " + packageName + " as " + packageId);
 				var p = await UnityPackageBuilder.Package(unityPackage, packageName + ".dll", dllStream);
-				return File(p, "application/zip", resultName);
+				_logger.LogInformation("Return file: " + packageId + ", " + p.Length + " bytes");
+				return File(p, "application/zip", packageId);
 			}
 			// var bytes = await _nuget.GetDll(packageName);
 			// if (bytes != null)

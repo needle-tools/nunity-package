@@ -31,8 +31,8 @@ namespace NUnityPackage.Controllers
 			var nuget = await NugetApi.GetSearchResults(text);
 			var rr = nuget.ToRegistryResult();
 			
-			_logger.LogInformation($"Search for " + text + " returned " + rr?.objects?.Count + " results\n" + 
-			                       string.Join("\n", rr?.objects?.Select(o => o.package.name) ?? ArraySegment<string>.Empty)
+			_logger.LogInformation($"Search for " + text + " returned " + rr?.objects?.Count + " results\n" 
+			                       // + string.Join("\n", rr?.objects?.Select(o => o.package.name) ?? ArraySegment<string>.Empty)
 			                       );
 			
 			
@@ -47,7 +47,7 @@ namespace NUnityPackage.Controllers
 		[HttpGet("{packageName}")]
 		public async Task<IActionResult> GetPackage(string packageName)
 		{
-			var url = Request.Scheme + "://" + Request.Host.Host + ":" + Request.Host.Port + "/download";
+			var url = Request.Scheme + "://" + Request.Host.Host + ":" + Request.Host.Port;
 			
 			
 			_logger.LogInformation("Get " + packageName);

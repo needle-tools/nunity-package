@@ -29,13 +29,13 @@ namespace NUnityPackage.Core
 
 	public static class RegistryPackageResultExtensions
 	{
-		public static RegistryPackageResult ToRegistryPackageResult(this NugetPackageRegistrationResult res, string nugetTarballEndpoint)
+		public static RegistryPackageResult ToRegistryPackageResult(this NugetPackageRegistrationResult res, string downloadEndpoint)
 		{
 			if (res == null) return null;
 			var rr = new RegistryPackageResult();
 			if (res.count <= 0 || res.items == null) return rr;
-			if (!nugetTarballEndpoint.EndsWith("/"))
-				nugetTarballEndpoint += "/";
+			if (!downloadEndpoint.EndsWith("/"))
+				downloadEndpoint += "/";
 			foreach (var it in res.items)
 			{
 				if (it.items == null) continue;
@@ -60,8 +60,8 @@ namespace NUnityPackage.Core
 							version = details.version,
 							dist = new RegistryPackageResult.Version.Dist()
 							{
-								tarball = nugetTarballEndpoint + id,
-								shasum = "9f5c59079de8a655abc527ab333ec667266e70d2"
+								tarball = downloadEndpoint + id + "/-/" + id + "-" + details.version + ".tgz",
+								shasum = "0eaf2b4161171679cc62a2bca9eb1d52e63780a0"
 							}
 						});
 					}
