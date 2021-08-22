@@ -21,8 +21,8 @@
       "commandName": "Project",
       "dotnetRunMessages": "true",
       "launchBrowser": true,
-      "launchUrl": "nuget",
-      "applicationUrl": "https://localhost:8080;http://localhost:8081",
+      "launchUrl": "-/v1/search",
+      "applicationUrl": "http://localhost:8080",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "PORT" : "8080"

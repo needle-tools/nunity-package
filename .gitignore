@@ -3,3 +3,9 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+tests/projects/**/Library
+tests/projects/**/Logs
+tests/projects/**/Temp
+tests/projects/**/obj
+tests/projects/**/*.csproj
+tests/projects/**/*.sln
