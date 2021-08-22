@@ -58,20 +58,24 @@ namespace NUnityPackage.Core
 						if (rr.versions.Count >= maxVersions) break;
 
 						var fileId = $"{id}-{details.version}.tgz";
-						var sha = await Shasum.TryGet(fileId, cache);
 
-						if (sha == null)
+						Shasum sha = default;
+						if (cache != null)
 						{
-							await UnityPackageBuilder.BuildTgzPackage(id, details.version, fileId, cache, logger);
 							sha = await Shasum.TryGet(fileId, cache);
 							if (sha == null)
 							{
-								logger.LogError($"Built package {fileId} but sha is still not found, will skip this");
-								continue;
+								await UnityPackageBuilder.BuildTgzPackage(id, details.version, fileId, cache, logger);
+								sha = await Shasum.TryGet(fileId, cache);
+								if (sha == null)
+								{
+									logger.LogError($"Built package {fileId} but sha is still not found, will skip this");
+									continue;
+								}
 							}
 						}
 
-						var dist = new RegistryPackageResult.Version.Dist()
+						var dist = new RegistryPackageResult.Version.Dist
 						{
 							tarball = downloadEndpoint + id + "/-/" + fileId,
 							shasum = sha?.shasum
