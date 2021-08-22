@@ -16,8 +16,16 @@ namespace NUnityPackage.Controllers
 			_logger = logger;
 		}
 
+
+		[HttpGet("internal/clear/all")]
+		public async Task<ActionResult> ClearAll()
+		{
+			await Globals.Cache.ClearCachedFiles();
+			return Ok("done");
+		}
+
 		[HttpGet("{packageName}/-/{packageId}")]
-		public async Task<ActionResult> Get(string packageName, string packageId)
+		public async Task<ActionResult> DownloadPackage(string packageName, string packageId)
 		{
 			_logger.LogInformation("Request download: " + packageId);
 

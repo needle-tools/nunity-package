@@ -4,7 +4,6 @@
       "name": "needle.nuget",
       "url": "http://localhost:8080",
       "scopes": [
-        "system",
         "newtonsoft"
       ]
     },

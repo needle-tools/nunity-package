@@ -81,5 +81,14 @@ namespace NUnityPackage.Core
 				yield return storageObject;
 			}
 		}
+
+		public async Task ClearCachedFiles(string bucketName = null)
+		{
+			bucketName ??= defaultBucketName;
+			foreach (var file in ListFiles(bucketName))
+			{
+				await client.DeleteObjectAsync(file.Bucket, file.Name);
+			}
+		}
 	}
 }

@@ -71,13 +71,13 @@ namespace NUnityPackage.Core
 			var gzipStream = new GZipStream(zipStream, CompressionLevel.Optimal);
 			await using var archive = new TarOutputStream(gzipStream, Encoding.Default);
 
-			var dir = Directory.CreateDirectory("package");
-			var jsonPath = "package/package.json";
+			var dir = Directory.CreateDirectory(tempDir + "/package");
+			var jsonPath = tempDir + "/package/package.json";
 			var json = JsonConvert.SerializeObject(package, Formatting.Indented, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 			await WriteFile(archive, jsonPath, json);
 			await WriteFile(archive, jsonPath + ".meta", UnityMetaHelper.GetMeta("305c24821ff995c408403969a18e2c79"));
 
-			var dllPath = "package/" + dllName + ".dll";
+			var dllPath = tempDir + "/package/" + dllName + ".dll";
 			var entry = TarEntry.CreateTarEntry(dllPath);
 			entry.Size = dllStream.Length;
 			archive.PutNextEntry(entry);
