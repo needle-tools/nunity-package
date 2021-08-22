@@ -1,4 +1,11 @@
 steps:
-- name: "gcr.io/cloud-builders/gcloud"
-  args: ["app", "deploy"]
-timeout: "1600s"
+
+# Build
+- name: 'gcr.io/cloud-builders/dotnet'
+  args: [ 'publish', '-c', 'Release' ]
+  dir: 'NUnityPackage'
+
+# DEPLOY
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['app','deploy','NUnityPackage/bin/Release/netcoreapp3.1/publish/app.yaml', '--verbosity=debug']
+timeout: '1200s'
