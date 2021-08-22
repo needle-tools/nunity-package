@@ -9,3 +9,4 @@ tests/projects/**/Temp
 tests/projects/**/obj
 tests/projects/**/*.csproj
 tests/projects/**/*.sln
+tests/projects/**/.idea

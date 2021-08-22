@@ -7,7 +7,7 @@ namespace NUnityPackage.Core
 	{
 		public string name;
 		public Dictionary<string, Version> versions = new Dictionary<string, Version>();
-		
+
 		public class Version
 		{
 			public string name;
@@ -20,19 +20,22 @@ namespace NUnityPackage.Core
 
 			public class Dist
 			{
+				public string integrity = "sha512-OksHxW6aKf7KaANm1RGpUhQaCMEgkfjH3IGuU5oXKTvRzfVy5AiD6RNAnjAxYVphnakle8jKLPzoa1ux65yZIQ==";
+				public string shasum = "59a5ab572f9a1dfd434f8b8613f3b6205ba63a19";
 				public string tarball;
 			}
 		}
-
 	}
 
 	public static class RegistryPackageResultExtensions
 	{
-		public static RegistryPackageResult ToRegistryPackageResult(this NugetPackageRegistrationResult res)
+		public static RegistryPackageResult ToRegistryPackageResult(this NugetPackageRegistrationResult res, string nugetTarballEndpoint)
 		{
 			if (res == null) return null;
 			var rr = new RegistryPackageResult();
 			if (res.count <= 0 || res.items == null) return rr;
+			if (!nugetTarballEndpoint.EndsWith("/"))
+				nugetTarballEndpoint += "/";
 			foreach (var it in res.items)
 			{
 				if (it.items == null) continue;
@@ -48,11 +51,17 @@ namespace NUnityPackage.Core
 						{
 							name = id,
 							description = details.description,
-							displayName = details.title ?? details.id,
+							displayName =
+								!string.IsNullOrWhiteSpace(details.title)
+									? details.title
+									: !string.IsNullOrWhiteSpace(details.id)
+										? details.id
+										: id,
 							version = details.version,
 							dist = new RegistryPackageResult.Version.Dist()
 							{
-								tarball = "http://localhost:8080/nuget/" + id
+								tarball = nugetTarballEndpoint + id,
+								shasum = "9f5c59079de8a655abc527ab333ec667266e70d2"
 							}
 						});
 					}

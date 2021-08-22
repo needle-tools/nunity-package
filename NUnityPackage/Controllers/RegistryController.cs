@@ -47,9 +47,12 @@ namespace NUnityPackage.Controllers
 		[HttpGet("{packageName}")]
 		public async Task<IActionResult> GetPackage(string packageName)
 		{
+			var url = Request.Scheme + "://" + Request.Host.Host + ":" + Request.Host.Port + "/download";
+			
+			
 			_logger.LogInformation("Get " + packageName);
 			var packageRes = await NugetApi.GetPackageRegistrationResult(packageName);
-			var res = packageRes?.ToRegistryPackageResult();
+			var res = packageRes?.ToRegistryPackageResult(url);
 			var json = string.Empty;
 			if (res != null)
 			{

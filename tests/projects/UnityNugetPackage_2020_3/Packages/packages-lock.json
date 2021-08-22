@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.needle.dummypackage": {
+      "version": "0.0.6-pre",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.glitch.me"
+    },
     "com.unity.collab-proxy": {
       "version": "1.5.7",
       "depth": 0,

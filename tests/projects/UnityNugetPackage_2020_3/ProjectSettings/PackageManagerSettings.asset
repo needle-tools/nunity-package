@@ -35,7 +35,7 @@ MonoBehaviour:
     m_Name: needle.glitch
     m_Url: https://packages.glitch.me
     m_Scopes:
-    - com.needle
+    - com.needle.dummypackage
     m_IsDefault: 0
     m_Capabilities: 0
   m_UserSelectedRegistryName: 

@@ -29,7 +29,8 @@ namespace NUnityPackage.Core
 			
 			var dir = Directory.CreateDirectory("package");
 			var jsonPath = "package/package.json";
-			await WriteFile(archive, jsonPath, JsonConvert.SerializeObject(package, Formatting.Indented));
+			var json = JsonConvert.SerializeObject(package, Formatting.Indented, new JsonSerializerSettings(){NullValueHandling = NullValueHandling.Ignore});
+			await WriteFile(archive, jsonPath, json);
 			await WriteFile(archive, jsonPath + ".meta", UnityMetaHelper.GetMeta("305c24821ff995c408403969a18e2c79"));
 
 			var dllPath = "package/" + dllName + ".dll";

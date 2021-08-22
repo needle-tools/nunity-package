@@ -15,11 +15,11 @@ namespace NUnityPackage.Controllers
 {
 	[ApiController]
 	[Route("[controller]")]
-	public class NugetController : ControllerBase
+	public class DownloadController : ControllerBase
 	{
-		private readonly ILogger<NugetController> _logger;
+		private readonly ILogger<DownloadController> _logger;
 
-		public NugetController(ILogger<NugetController> logger)
+		public DownloadController(ILogger<DownloadController> logger)
 		{
 			_logger = logger;
 		}
@@ -43,15 +43,16 @@ namespace NUnityPackage.Controllers
 		[HttpGet("{packageName}")]
 		public async Task<ActionResult> Get(string packageName)
 		{
+			_logger.LogInformation("Download " + packageName);
+			
 			using (var package = new NugetPackage(packageName))
 			{
 				var spec = await package.GetSpecification();
 				var dllStream = await package.GetDllStream();
-				var name = $"com.{spec.metadata.owners.Replace(",", "-")}.{packageName.Replace('.', '-')}".ToLowerInvariant();
-
+				
 				var meta = spec.metadata;
 				var unityPackage = new UnityPackage();
-				unityPackage.name = name;
+				unityPackage.name = spec.ToUnityPackageName(packageName);
 				unityPackage.version =  meta.version;
 				unityPackage.displayName = meta.title ?? packageName;
 				unityPackage.description = meta.description;
@@ -60,9 +61,11 @@ namespace NUnityPackage.Controllers
 				unityPackage.license = meta.license;
 				unityPackage.licensesUrl = meta.licenseUrl;
 				unityPackage.documentationUrl = meta.projectUrl;
-				
+
+				var resultName = packageName + "-" + unityPackage.version + ".tgz";
+				_logger.LogInformation("Downloading " + packageName + " as " + resultName);
 				var p = await UnityPackageBuilder.Package(unityPackage, packageName + ".dll", dllStream);
-				return File(p, "application/zip", name + ".tgz");
+				return File(p, "application/zip", resultName);
 			}
 			// var bytes = await _nuget.GetDll(packageName);
 			// if (bytes != null)
