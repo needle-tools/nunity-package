@@ -52,7 +52,8 @@ namespace NUnityPackage.Controllers
 			}
 
 			var maxVersions = Globals.IsDevelopmentEnvironment ? 2 : 200;
-			var res = await packageRes.ToRegistryPackageResult(maxVersions, url, Globals.Cache, _logger);
+			var cache = Globals.Cache;
+			var res = await packageRes.ToRegistryPackageResult(maxVersions, url, cache, _logger);
 			var json = string.Empty;
 			if (res != null)
 			{

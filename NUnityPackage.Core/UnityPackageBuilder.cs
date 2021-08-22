@@ -34,7 +34,7 @@ namespace NUnityPackage.Core
 				return null;
 			}
 
-			var dllStream = await package.GetDllStream(logger);
+			var dllStream = await package.GetDllStream();
 
 			if (dllStream == null)
 			{
@@ -54,49 +54,66 @@ namespace NUnityPackage.Core
 			unityPackage.documentationUrl = meta.projectUrl;
 
 			logger?.LogInformation("Downloading " + packageName + " as " + packageId);
-			var p = await BuildPackageTgz(unityPackage, packageName + ".dll", dllStream, cache, packageId);
+			var p = await BuildPackageTgz(unityPackage, package, cache, packageId);
 			logger?.LogInformation("Return file: " + packageId + ", " + p.Length + " bytes");
 			return p;
 		}
 
-		private static async Task<byte[]> BuildPackageTgz(UnityPackage package, string dllName, MemoryStream dllStream, Caching cache, string cacheName)
+		private static async Task<byte[]> BuildPackageTgz(UnityPackage package, NugetPackage nugetPackage, Caching cache, string cacheName)
 		{
 			var packageName = package.name + "-" + package.version + ".tgz";
 
 			var tempDir = "temp/" + packageName + "-" + DateTime.UtcNow.ToFileTime();
 			if (!Directory.Exists(tempDir)) Directory.CreateDirectory(tempDir);
 			if (!tempDir.EndsWith("/")) tempDir += "/";
-			
+
 			var localPackagePath = tempDir + packageName;
 
 			var zipStream = File.Create(localPackagePath);
 			var gzipStream = new GZipStream(zipStream, CompressionLevel.Optimal);
 			await using var archive = new TarOutputStream(gzipStream, Encoding.Default);
 
-			var dir = Directory.CreateDirectory(tempDir + "/package");
-			
+			var localPackageDir = tempDir + "/package";
+			var dir = Directory.CreateDirectory(localPackageDir);
+
+			// save package json
 			var jsonPathZip = "package/package.json";
 			var jsonPathLocal = tempDir + jsonPathZip;
 			var json = JsonConvert.SerializeObject(package, Formatting.Indented, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 			await WriteFile(archive, json, jsonPathLocal, jsonPathZip);
 			await WriteFile(archive, UnityMetaHelper.GetMeta(GetGuidFromContent(json)), $"{jsonPathLocal}.meta", $"{jsonPathZip}.meta");
 
-			if (!dllName.EndsWith(".dll")) dllName += ".dll";
-			var dllPathZip = "package/" + dllName;
-			var dllPathLocal = tempDir + dllPathZip;
-			var entry = TarEntry.CreateTarEntry(dllPathZip);
-			entry.Size = dllStream.Length;
-			archive.PutNextEntry(entry);
-			dllStream.Position = 0;
-			StreamUtils.Copy(dllStream, archive, writeBuffer);
-			archive.CloseEntry();
-			await WriteFile(archive, UnityMetaHelper.GetMeta(GetGuidFromStream(dllStream)), $"{dllPathLocal}.meta", $"{dllPathZip}.meta");
+			// save package plugin (assuming it is only one dll at the moment)
+			var dllStream = await nugetPackage.GetDllStream();
+			if (dllStream != null)
+			{
+				var dllName = nugetPackage.name;
+				if (!dllName.EndsWith(".dll")) dllName += ".dll";
+				var dllPathZip = "package/" + dllName;
+				var dllPathLocal = tempDir + dllPathZip;
+				var entry = TarEntry.CreateTarEntry(dllPathZip);
+				entry.Size = dllStream.Length;
+				archive.PutNextEntry(entry);
+				dllStream.Position = 0;
+				StreamUtils.Copy(dllStream, archive, writeBuffer);
+				archive.CloseEntry();
+				await WriteFile(archive, UnityMetaHelper.GetMeta(GetGuidFromStream(dllStream)), $"{dllPathLocal}.meta", $"{dllPathZip}.meta");
+			}
 
-			dir.Delete(true);
+			await foreach (var file in nugetPackage.GetLicenseFiles())
+			{
+				var localPath = $"{tempDir}package/{file.Name}";
+				file.ExtractToFile(localPath);
+				// var fileStream = file.Open();
+				await using(var fs = File.OpenRead(localPath))
+					WriteFile(archive, fs, $"package/{file.Name}");
+				// WriteFile(archive, localPath, file.Name);
+				await WriteFile(archive, UnityMetaHelper.GetMeta(GetGuidFromFilePath(localPath)), $"{localPath}.meta", $"package/{file.Name}.meta");
+			}
 
+			
 			archive.IsStreamOwner = true;
 			archive.Close();
-
 			var bytes = await File.ReadAllBytesAsync(localPackagePath);
 
 			if (cache != null)
@@ -105,14 +122,16 @@ namespace NUnityPackage.Core
 				Shasum.CreateAndUpload(bytes, cacheName, cache);
 			}
 
+			if (dir.Exists)
+				dir.Delete(true);
 			if (File.Exists(localPackagePath))
 				File.Delete(localPackagePath);
-			if (Directory.Exists(tempDir)) 
+			if (Directory.Exists(tempDir))
 				Directory.Delete(tempDir);
-			
+
 			return bytes;
 		}
-		
+
 		private static string GetGuidFromContent(string content)
 		{
 			return HashUtils.GetMd5Hash(Encoding.UTF8.GetBytes(content));
@@ -125,7 +144,7 @@ namespace NUnityPackage.Core
 
 		private static string GetGuidFromStream(Stream stream)
 		{
-			using(var mem = new MemoryStream())
+			using (var mem = new MemoryStream())
 			{
 				stream.CopyTo(mem);
 				return HashUtils.GetMd5Hash(mem.ToArray());
@@ -147,6 +166,32 @@ namespace NUnityPackage.Core
 
 			sr.Close();
 			File.Delete(localPath);
+		}
+		
+		private static void WriteFile(TarOutputStream archive, string localPath, string zipPath)
+		{
+			var file = File.OpenRead(localPath);
+
+			var entry = TarEntry.CreateTarEntry(zipPath);
+			entry.Size = file.Length;
+			archive.PutNextEntry(entry);
+			file.Position = 0;
+			StreamUtils.Copy(file, archive, writeBuffer);
+			archive.CloseEntry();
+			File.Delete(localPath);
+		}
+
+		private static void WriteFile(TarOutputStream archive, Stream stream, string zipPath)
+		{
+			using var ms = new MemoryStream();
+			stream.CopyTo(ms);
+			
+			var entry = TarEntry.CreateTarEntry(zipPath);
+			entry.Size = ms.Length;
+			archive.PutNextEntry(entry);
+			ms.Position = 0;
+			StreamUtils.Copy(ms, archive, writeBuffer);
+			archive.CloseEntry();
 		}
 	}
 }
