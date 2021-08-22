@@ -11,3 +11,5 @@ tests/projects/**/*.csproj
 tests/projects/**/*.sln
 tests/projects/**/.idea
 NUnityPackage/*.tgz
+development-gcloud-credentials.json
+NUnityPackage/temp

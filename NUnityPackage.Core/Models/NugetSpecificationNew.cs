@@ -2,12 +2,22 @@
 
 namespace NUnityPackage.Core
 {
-	[XmlRoot("package", Namespace = "http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd")]
 	public class NugetSpecification
 	{
 		public Metadata metadata;
 	}
+	
+	[XmlRoot("package")]//, Namespace = "http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd")]
+	public class NugetSpecificationNew : NugetSpecification
+	{
+	}
+	
+	// [XmlRoot("package")]
+	// public class NugetSpecificationW3 : NugetSpecification
+	// {
+	// }
 
+	// [XmlType("metadata", Namespace = "http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd")]
 	public class Metadata
 	{
 		public string id;

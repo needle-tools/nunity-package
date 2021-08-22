@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NUnityPackage.Core;
@@ -27,38 +19,26 @@ namespace NUnityPackage.Controllers
 		[HttpGet("{packageName}/-/{packageId}")]
 		public async Task<ActionResult> Get(string packageName, string packageId)
 		{
-			_logger.LogInformation("Download " + packageId);
-			
-			using (var package = new NugetPackage(packageName))
+			_logger.LogInformation("Request download: " + packageId);
+
+			var bytes = await Globals.Cache.TryDownloadFile(packageId);
+			if (bytes != null)
 			{
-				var spec = await package.GetSpecification();
-				var dllStream = await package.GetDllStream();
-				
-				var meta = spec.metadata;
-				var unityPackage = new UnityPackage();
-				unityPackage.name = spec.ToUnityPackageName(packageName);
-				unityPackage.version =  meta.version;
-				unityPackage.displayName = meta.title ?? packageName;
-				unityPackage.description = meta.description;
-				unityPackage.author = meta.authors;
-				unityPackage.changelog = meta.releaseNotes;
-				unityPackage.license = meta.license;
-				unityPackage.licensesUrl = meta.licenseUrl;
-				unityPackage.documentationUrl = meta.projectUrl;
-
-				_logger.LogInformation("Downloading " + packageName + " as " + packageId);
-				var p = await UnityPackageBuilder.Package(unityPackage, packageName + ".dll", dllStream);
-				_logger.LogInformation("Return file: " + packageId + ", " + p.Length + " bytes");
-
-				var hash = UnityPackageBuilder.GetHash(p);
-				_logger.LogInformation(hash);
-				
-				return File(p, "application/zip", packageId);
+				_logger.LogInformation("Resolved from cache: " + packageId);
 			}
-			// var bytes = await _nuget.GetDll(packageName);
-			// if (bytes != null)
-			// 	return File(bytes, "application/octet-stream", packageName + ".dll");
-			// return null;
+			else
+			{
+				var version = packageId.Substring(packageName.Length+1, packageId.Length - packageName.Length - 5);
+				bytes = await UnityPackageBuilder.BuildTgzPackage(packageName, version, packageId, Globals.Cache, _logger);
+			}
+
+			if (bytes == null)
+			{
+				_logger.LogError("Failed downloading " + packageId);
+				return Problem("could not find " + packageId);
+			}
+
+			return File(bytes, "application/zip", packageId);
 		}
 
 		// [HttpGet]

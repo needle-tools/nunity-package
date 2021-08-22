@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace NUnityPackage.Core
 {
@@ -21,7 +23,7 @@ namespace NUnityPackage.Core
 			public class Dist
 			{
 				// TODO: download package once on request and calculate sha1 sum
-				public string shasum = "153eda12187d4ec6fd4d983d875f10626b148ff0";
+				public string shasum;
 				public string tarball;
 			}
 		}
@@ -29,7 +31,7 @@ namespace NUnityPackage.Core
 
 	public static class RegistryPackageResultExtensions
 	{
-		public static RegistryPackageResult ToRegistryPackageResult(this NugetPackageRegistrationResult res, string downloadEndpoint)
+		public static async Task<RegistryPackageResult> ToRegistryPackageResult(this NugetPackageRegistrationResult res, string downloadEndpoint, Caching cache, ILogger logger = null)
 		{
 			if (res == null) return null;
 			var rr = new RegistryPackageResult();
@@ -47,7 +49,26 @@ namespace NUnityPackage.Core
 					rr.name = id;
 					if (!rr.versions.ContainsKey(details.version))
 					{
-						rr.versions.Add(details.version, new RegistryPackageResult.Version()
+						var fileId = $"{id}-{details.version}.tgz";
+						var sha = await Shasum.TryGet(fileId, cache);
+
+						if (sha == null)
+						{
+							await UnityPackageBuilder.BuildTgzPackage(id, details.version, fileId, cache, logger);
+							sha = await Shasum.TryGet(fileId, cache);
+							if (sha == null)
+							{
+								logger.LogError($"Built package {fileId} but sha is still not found, will skip this");
+								continue;
+							}
+						}
+						
+						var dist = new RegistryPackageResult.Version.Dist()
+						{
+							tarball = downloadEndpoint + id + "/-/" + fileId,
+							shasum = sha?.shasum
+						};
+						var inst = new RegistryPackageResult.Version()
 						{
 							name = id,
 							description = details.description,
@@ -58,12 +79,14 @@ namespace NUnityPackage.Core
 										? details.id
 										: id,
 							version = details.version,
-							dist = new RegistryPackageResult.Version.Dist()
-							{
-								tarball = downloadEndpoint + id + "/-/" + id + "-" + details.version + ".tgz"
-								
-							}
-						});
+							dist = dist
+						};
+						
+
+
+						
+						
+						rr.versions.Add(details.version, inst);
 					}
 				}
 			}

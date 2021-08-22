@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
@@ -10,6 +11,7 @@ using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.GZip;
 using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace NUnityPackage.Core
@@ -22,14 +24,50 @@ namespace NUnityPackage.Core
 	{
 		private static readonly byte[] writeBuffer = new byte[32 * 1024];
 
-		public static async Task<byte[]> Package(UnityPackage package, string dllName, MemoryStream dllStream)
+		public static async Task<byte[]> BuildTgzPackage(string packageName, string packageVersion, string packageId, Caching cache, ILogger logger = null)
+		{
+			using var package = new NugetPackage(packageName, packageVersion, logger);
+			var spec = await package.GetSpecification();
+			if (spec == null)
+			{
+				logger.LogError("Failed getting specification for " + packageId);
+				return null;
+			}
+
+			var dllStream = await package.GetDllStream(logger);
+
+			if (dllStream == null)
+			{
+				return null;
+			}
+
+			var meta = spec.metadata;
+			var unityPackage = new UnityPackage();
+			unityPackage.name = spec.ToUnityPackageName(packageName);
+			unityPackage.version = meta.version;
+			unityPackage.displayName = meta.title ?? packageName;
+			unityPackage.description = meta.description;
+			unityPackage.author = meta.authors;
+			unityPackage.changelog = meta.releaseNotes;
+			unityPackage.license = meta.license;
+			unityPackage.licensesUrl = meta.licenseUrl;
+			unityPackage.documentationUrl = meta.projectUrl;
+
+			logger?.LogInformation("Downloading " + packageName + " as " + packageId);
+			var p = await BuildPackageTgz(unityPackage, packageName + ".dll", dllStream, cache, packageId);
+			logger?.LogInformation("Return file: " + packageId + ", " + p.Length + " bytes");
+			return p;
+		}
+
+		private static async Task<byte[]> BuildPackageTgz(UnityPackage package, string dllName, MemoryStream dllStream, Caching cache, string cacheName)
 		{
 			var packageName = package.name + "-" + package.version + ".tgz";
-			var packagePath = packageName;
-			if(File.Exists(packagePath))
-				return await File.ReadAllBytesAsync(packageName);
-			
-			var zipStream = File.Create(packageName);
+
+			var tempDir = "temp/" + packageName + "-" + DateTime.UtcNow.ToFileTime();
+			if (!Directory.Exists(tempDir)) Directory.CreateDirectory(tempDir);
+			var localPackagePath = tempDir + "/" + packageName;
+
+			var zipStream = File.Create(localPackagePath);
 			var gzipStream = new GZipStream(zipStream, CompressionLevel.Optimal);
 			await using var archive = new TarOutputStream(gzipStream, Encoding.Default);
 
@@ -54,8 +92,17 @@ namespace NUnityPackage.Core
 			archive.IsStreamOwner = true;
 			archive.Close();
 
-			var bytes = await File.ReadAllBytesAsync(packageName);
-			// File.Delete(packageName);
+			var bytes = await File.ReadAllBytesAsync(localPackagePath);
+
+			if (cache != null)
+			{
+				cache.UploadFile(localPackagePath, cacheName);
+				Shasum.CreateAndUpload(bytes, cacheName, cache);
+			}
+
+			if (File.Exists(localPackagePath))
+				File.Delete(localPackagePath);
+			if (Directory.Exists(tempDir)) Directory.Delete(tempDir);
 			return bytes;
 		}
 
@@ -64,10 +111,11 @@ namespace NUnityPackage.Core
 			using var algo = SHA1.Create();
 			var data = algo.ComputeHash(bytes);
 			var sBuilder = new StringBuilder();
-			for (var i = 0; i < data.Length; i++)
+			foreach (var t in data)
 			{
-				sBuilder.Append(data[i].ToString("x2"));
+				sBuilder.Append(t.ToString("x2"));
 			}
+
 			return sBuilder.ToString();
 		}
 

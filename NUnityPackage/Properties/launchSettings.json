@@ -25,7 +25,8 @@
       "applicationUrl": "http://localhost:8080",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "PORT" : "8080"
+        "PORT" : "8080",
+        "GOOGLE_APPLICATION_CREDENTIALS" : "../development-gcloud-credentials.json"
       }
     }
   }

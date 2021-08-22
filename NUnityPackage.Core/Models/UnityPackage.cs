@@ -1,4 +1,5 @@
 ﻿using System;
+using Newtonsoft.Json;
 
 namespace NUnityPackage.Core
 {
@@ -14,6 +15,9 @@ namespace NUnityPackage.Core
 		public string documentationUrl;
 		public string license;
 		public string licensesUrl;
+
+		[JsonIgnore]
+		public string id => name + "-" + version;
 	}
 
 	public static class UnityPackageExtensions
