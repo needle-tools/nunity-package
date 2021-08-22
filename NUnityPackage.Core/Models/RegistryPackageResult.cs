@@ -20,8 +20,8 @@ namespace NUnityPackage.Core
 
 			public class Dist
 			{
-				public string integrity = "sha512-OksHxW6aKf7KaANm1RGpUhQaCMEgkfjH3IGuU5oXKTvRzfVy5AiD6RNAnjAxYVphnakle8jKLPzoa1ux65yZIQ==";
-				public string shasum = "59a5ab572f9a1dfd434f8b8613f3b6205ba63a19";
+				// TODO: download package once on request and calculate sha1 sum
+				public string shasum = "153eda12187d4ec6fd4d983d875f10626b148ff0";
 				public string tarball;
 			}
 		}
@@ -60,8 +60,8 @@ namespace NUnityPackage.Core
 							version = details.version,
 							dist = new RegistryPackageResult.Version.Dist()
 							{
-								tarball = downloadEndpoint + id + "/-/" + id + "-" + details.version + ".tgz",
-								shasum = "0eaf2b4161171679cc62a2bca9eb1d52e63780a0"
+								tarball = downloadEndpoint + id + "/-/" + id + "-" + details.version + ".tgz"
+								
 							}
 						});
 					}

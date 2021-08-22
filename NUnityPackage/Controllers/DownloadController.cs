@@ -49,6 +49,10 @@ namespace NUnityPackage.Controllers
 				_logger.LogInformation("Downloading " + packageName + " as " + packageId);
 				var p = await UnityPackageBuilder.Package(unityPackage, packageName + ".dll", dllStream);
 				_logger.LogInformation("Return file: " + packageId + ", " + p.Length + " bytes");
+
+				var hash = UnityPackageBuilder.GetHash(p);
+				_logger.LogInformation(hash);
+				
 				return File(p, "application/zip", packageId);
 			}
 			// var bytes = await _nuget.GetDll(packageName);

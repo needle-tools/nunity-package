@@ -10,3 +10,4 @@ tests/projects/**/obj
 tests/projects/**/*.csproj
 tests/projects/**/*.sln
 tests/projects/**/.idea
+NUnityPackage/*.tgz
