@@ -55,7 +55,7 @@ namespace NUnityPackage.Core
 			return res;
 		}
 
-		public async Task<byte[]> TryDownloadFile(string objectName, string bucketName = null, ILogger _logger = null)
+		public async Task<byte[]> TryDownloadFile(string objectName, string bucketName = null, ILogger logger = null)
 		{
 			try
 			{
@@ -67,7 +67,7 @@ namespace NUnityPackage.Core
 			}
 			catch (GoogleApiException e)
 			{
-				_logger?.Error(e.Message);
+				logger?.Error(e.Message);
 				return null;
 			}
 		}
@@ -82,11 +82,12 @@ namespace NUnityPackage.Core
 			}
 		}
 
-		public async Task ClearCachedFiles(string bucketName = null)
+		public async Task ClearCachedFiles(string bucketName = null, ILogger logger= null)
 		{
 			bucketName ??= defaultBucketName;
 			foreach (var file in ListFiles(bucketName))
 			{
+				logger?.Info("Delete " + file.Name + " in " + file.Bucket);
 				await client.DeleteObjectAsync(file.Bucket, file.Name);
 			}
 		}

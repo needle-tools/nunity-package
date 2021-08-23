@@ -1,0 +1,13 @@
+{
+    "name": "com.needle.nuget-backend-helper.Editor",
+    "references": ["com.needle.nuget-backend-helper"],
+    "includePlatforms": ["Editor"],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
