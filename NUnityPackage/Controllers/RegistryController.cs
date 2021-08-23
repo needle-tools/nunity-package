@@ -41,6 +41,7 @@ namespace NUnityPackage.Controllers
 		[HttpGet("{packageName}")]
 		public async Task<IActionResult> GetPackage(string packageName)
 		{
+			if (packageName == "favicon.ico") return NotFound();
 			var url = Request.Scheme + "://" + Request.Host.Host + ":" + Request.Host.Port;
 
 			_logger.LogInformation("Get " + packageName);
@@ -51,7 +52,7 @@ namespace NUnityPackage.Controllers
 				return new BadRequestResult();
 			}
 
-			var maxVersions = Globals.IsDevelopmentEnvironment ? 2 : 200;
+			var maxVersions = Globals.IsDevelopmentEnvironment ? 30 : 200;
 			var cache = Globals.Cache;
 			var res = await packageRes.ToRegistryPackageResult(maxVersions, url, cache, _logger);
 			var json = string.Empty;

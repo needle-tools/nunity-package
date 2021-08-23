@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace NUnityPackage.Core
 {
@@ -18,6 +20,11 @@ namespace NUnityPackage.Core
 	
 	public class NugetCatalogPageItem : NugetRegistrationResult<NugetPackageItem>
 	{
+		// e.g. https://api.nuget.org/v3/registration5-semver1/serilog/index.json
+		[JsonProperty("@id")]
+		public string id;
+		public string lower;
+		public string upper;
 	}
 	
 	public class NugetPackageItem

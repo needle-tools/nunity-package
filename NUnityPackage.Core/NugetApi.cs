@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Google.Apis.Logging;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace NUnityPackage.Core
@@ -57,7 +58,7 @@ namespace NUnityPackage.Core
 			}
 			catch (WebException webex)
 			{
-				logger?.Warning(packageName + ": " + webex.Message);
+				logger?.LogWarning(packageName + ": " + webex.Message);
 			}
 
 			return null;
@@ -70,9 +71,58 @@ namespace NUnityPackage.Core
 			if (json != null)
 			{
 				var obj = JsonConvert.DeserializeObject<NugetPackageRegistrationResult>(json);
+				if (obj != null) obj = await ResolvePaginatedResult(obj);
 				return obj;
 			}
 			return null;
+		}
+
+		public static async Task<NugetPackageRegistrationResult> ResolvePaginatedResult(NugetPackageRegistrationResult result, ILogger logger = null)
+		{
+			if (result == null || result.items == null) return result;
+			var newItems = new List<NugetCatalogPageItem>();
+			for (var index = result.items.Length - 1; index >= 0; index--)
+			{
+				var it = result.items[index];
+				if (it == null) continue;
+				if (it.items != null && it.items.Length > 0) continue;
+				try
+				{
+					using var client = new WebClient();
+					logger?.LogInformation("Request paginated result: " + it.id);
+					var res = await client.DownloadStringTaskAsync(new Uri(it.id));
+					if (res != null)
+					{
+						var obj = JsonConvert.DeserializeObject<NugetCatalogPageItem>(res);
+						if (obj != null)
+						{
+							if (obj.items != null && obj.items.Length > 0)
+							{
+								logger?.LogInformation("Add paginated results: " + obj.items.Length + " from " + it.id);
+								newItems.Add(obj);
+							}
+						}
+					}
+				}
+				catch (WebException webex)
+				{
+					logger?.LogWarning(webex.Message);
+				}
+				catch (Exception ex)
+				{
+					logger?.LogError(ex.Message);
+				}
+			}
+
+			if (newItems.Count > 0)
+			{
+				var newResult = new NugetPackageRegistrationResult();
+				newResult.items = newItems.ToArray();
+				newResult.count = newResult.items.Length;
+				return newResult;
+			}
+
+			return result;
 		}
 	}
 }

@@ -28,7 +28,7 @@ MonoBehaviour:
     m_Name: needle.nuget
     m_Url: http://localhost:8080
     m_Scopes:
-    - serilog
+    - automapper
     m_IsDefault: 0
     m_Capabilities: 0
   - m_Id: scoped:needle.glitch
@@ -47,12 +47,12 @@ MonoBehaviour:
       m_Name: needle.nuget
       m_Url: http://localhost:8080
       m_Scopes:
-      - serilog
+      - automapper
       m_IsDefault: 0
       m_Capabilities: 0
     m_Modified: 0
     m_Name: needle.nuget
     m_Url: http://localhost:8080
     m_Scopes:
-    - serilog
+    - automapper
     m_SelectedScopeIndex: 0

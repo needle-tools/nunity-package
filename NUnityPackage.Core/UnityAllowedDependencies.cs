@@ -8,7 +8,7 @@ namespace NUnityPackage.Core
 	{
 		public static bool IsAllowed(string name, string version)
 		{
-			bool _IsAllowed(IEnumerable<string> col) => !col.Any(e => e.Equals(name, StringComparison.OrdinalIgnoreCase));
+			bool _IsAllowed(IEnumerable<string> col) => !col.Any(e => e.Equals(name, StringComparison.InvariantCultureIgnoreCase));
 
 			if (!_IsAllowed(invalidAssemblies)) return false;
 			if (!_IsAllowed(additionalInvalidAssemblies)) return false;
@@ -17,6 +17,9 @@ namespace NUnityPackage.Core
 
 		private static readonly string[] additionalInvalidAssemblies =
 		{
+			// "unity",
+			"system.reflection.typeextensions",
+			"netstandard.library",
 			"system.memory",
 			"system.buffers",
 			"system.runtime.compilerservices.unsafe"
