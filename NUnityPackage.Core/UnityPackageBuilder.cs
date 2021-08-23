@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -72,14 +73,31 @@ namespace NUnityPackage.Core
 				{
 					var id = dep.id;
 					var version = dep.version;
-					if (SemVersion.TryParse(version, out var ver))
+
+					// ReSharper disable once VariableHidesOuterVariable
+					void Add(string version)
 					{
 						// TODO: parse [4.1.1-rc2-24027, ) to proper version string
 						package.dependencies ??= new Dictionary<string, string>();
 						if (!package.dependencies.ContainsKey(id))
-							package.dependencies.Add(id, version);
+							package.dependencies.Add(id.ToLowerInvariant(), version);
 					}
-					else throw new Exception("Dependency is no semver format: " + version + " in " + package.id);
+					if (SemVersion.TryParse(version, out var ver))
+					{
+						Add(version);
+					}
+					// means: >=
+					else if(version.StartsWith("["))
+					{
+						var trimmed = version.Trim('[', ']', ')').Split(",").FirstOrDefault();
+						Add(trimmed);
+					}
+					// means: >
+					else if (version.StartsWith("("))
+					{
+						// TODO: lookup next bigger version
+						throw new NotImplementedException("Todo: lookup next version: " + version);
+					}
 				}
 			}
 
