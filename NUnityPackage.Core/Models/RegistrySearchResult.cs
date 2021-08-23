@@ -38,7 +38,7 @@ namespace NUnityPackage.Core
 				var obj = new RegistryObject();
 				var package = obj.package = new RegistryObject.Package();
 				rr.objects.Add(obj);
-				package.name = res.id.ToLowerInvariant();
+				package.name = res.id.ToLowerInvariant().Replace(" ", "-");
 				var ver = res.versions.LastOrDefault();
 				if (ver != null)
 				{
