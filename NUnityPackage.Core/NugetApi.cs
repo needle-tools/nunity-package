@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Google.Apis.Logging;
 using Newtonsoft.Json;
 
 namespace NUnityPackage.Core
@@ -45,14 +46,21 @@ namespace NUnityPackage.Core
 		// https://api.nuget.org/v3/registration5-semver1/system.drawing.common/index.json
 		private static string PackageRegistrationUrl(string packageName) => $"https://api.nuget.org/v3/registration5-semver1/{packageName}/index.json";
 		
-		public static async Task<string> GetPackageRegistrationInfoRaw(string packageName)
+		public static async Task<string> GetPackageRegistrationInfoRaw(string packageName, ILogger logger = null)
 		{
-			using (var client = new WebClient())
+			try
 			{
+				using var client = new WebClient();
 				var url = PackageRegistrationUrl(packageName);
 				var res = await client.DownloadStringTaskAsync(new Uri(url));
 				return res;
 			}
+			catch (WebException webex)
+			{
+				logger?.Warning(packageName + ": " + webex.Message);
+			}
+
+			return null;
 		}
 		
 		
