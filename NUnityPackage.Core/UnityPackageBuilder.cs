@@ -138,7 +138,7 @@ namespace NUnityPackage.Core
 			await using var archive = new TarOutputStream(gzipStream, Encoding.Default);
 
 			var localPackageDir = tempDir + "/package";
-			Directory.CreateDirectory(localPackageDir);
+			var dir = Directory.CreateDirectory(localPackageDir);
 
 			// save package json
 			var jsonPathZip = "package/package.json";
@@ -187,12 +187,12 @@ namespace NUnityPackage.Core
 				Shasum.CreateAndUpload(bytes, cacheName, cache);
 			}
 
-			// if (dir.Exists)
-			// 	dir.Delete(true);
-			// if (File.Exists(localPackagePath))
-			// 	File.Delete(localPackagePath);
-			// if (Directory.Exists(tempDir))
-			// 	Directory.Delete(tempDir);
+			if (dir.Exists)
+				dir.Delete(true);
+			if (File.Exists(localPackagePath))
+				File.Delete(localPackagePath);
+			if (Directory.Exists(tempDir))
+				Directory.Delete(tempDir);
 
 			return bytes;
 		}
