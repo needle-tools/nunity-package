@@ -24,12 +24,11 @@ MonoBehaviour:
     m_Scopes: []
     m_IsDefault: 1
     m_Capabilities: 7
-  - m_Id: scoped:needle.nuget
-    m_Name: needle.nuget
-    m_Url: http://localhost:8080
+  - m_Id: scoped:needle.mock
+    m_Name: needle.mock
+    m_Url: https://mock-registry.glitch.me
     m_Scopes:
-    - automapper
-    - system.runtime.compilerservices.unsafe
+    - com.dummy
     m_IsDefault: 0
     m_Capabilities: 0
   - m_Id: scoped:needle.glitch
@@ -39,23 +38,21 @@ MonoBehaviour:
     - com.needle.dummypackage
     m_IsDefault: 0
     m_Capabilities: 0
-  m_UserSelectedRegistryName: 
+  m_UserSelectedRegistryName: needle.mock
   m_UserAddingNewScopedRegistry: 0
   m_RegistryInfoDraft:
     m_ErrorMessage: 
     m_Original:
-      m_Id: scoped:needle.nuget
-      m_Name: needle.nuget
-      m_Url: http://localhost:8080
+      m_Id: scoped:needle.mock
+      m_Name: needle.mock
+      m_Url: https://mock-registry.glitch.me
       m_Scopes:
-      - automapper
-      - system.runtime.compilerservices.unsafe
+      - com.dummy
       m_IsDefault: 0
       m_Capabilities: 0
     m_Modified: 0
-    m_Name: needle.nuget
-    m_Url: http://localhost:8080
+    m_Name: needle.mock
+    m_Url: https://mock-registry.glitch.me
     m_Scopes:
-    - automapper
-    - system.runtime.compilerservices.unsafe
+    - com.dummy
     m_SelectedScopeIndex: 0

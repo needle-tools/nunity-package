@@ -20,8 +20,8 @@ namespace NUnityPackage.Core
 			// "unity",
 			"system.reflection.typeextensions",
 			"netstandard.library",
-			"system.memory",
-			"system.buffers",
+			// "system.memory",
+			// "system.buffers",
 			"system.runtime.compilerservices.unsafe"
 		};
 
