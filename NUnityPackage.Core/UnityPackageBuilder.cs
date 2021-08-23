@@ -124,7 +124,8 @@ namespace NUnityPackage.Core
 
 		private static async Task<byte[]> BuildPackageTgz(UnityPackage package, NugetPackage nugetPackage, Caching cache, string cacheName)
 		{
-			var packageName = package.name + "-" + package.version + ".tgz";
+			var id = package.name + "-" + package.version;
+			var packageName = id + ".tgz";
 
 			var tempDir = "temp/" + packageName + "-" + DateTime.UtcNow.ToFileTime();
 			if (!Directory.Exists(tempDir)) Directory.CreateDirectory(tempDir);
@@ -144,7 +145,7 @@ namespace NUnityPackage.Core
 			var jsonPathLocal = tempDir + jsonPathZip;
 			var json = JsonConvert.SerializeObject(package, Formatting.Indented, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 			await WriteFile(archive, json, jsonPathLocal, jsonPathZip);
-			await WriteFile(archive, UnityMetaHelper.GetMeta(GetGuidFromContent(json)), $"{jsonPathLocal}.meta", $"{jsonPathZip}.meta");
+			await WriteFile(archive, UnityMetaHelper.GetMeta(GetGuidFromContent(id, json)), $"{jsonPathLocal}.meta", $"{jsonPathZip}.meta");
 
 			// save package plugin (assuming it is only one dll at the moment)
 			var dllStream = await nugetPackage.GetDllStream();
@@ -160,7 +161,7 @@ namespace NUnityPackage.Core
 				dllStream.Position = 0;
 				StreamUtils.Copy(dllStream, archive, writeBuffer);
 				archive.CloseEntry();
-				var guid = GetGuidFromStream(dllStream);
+				var guid = GetGuidFromStream(id, dllStream);
 				await WriteFile(archive, UnityMetaHelper.GetMeta(guid), $"{dllPathLocal}.meta", $"{dllPathZip}.meta");
 			}
 
@@ -172,7 +173,7 @@ namespace NUnityPackage.Core
 				await using (var fs = File.OpenRead(localPath))
 					WriteFile(archive, fs, $"package/{file.Name}");
 				// WriteFile(archive, localPath, file.Name);
-				await WriteFile(archive, UnityMetaHelper.GetMeta(GetGuidFromFilePath(localPath)), $"{localPath}.meta", $"package/{file.Name}.meta");
+				await WriteFile(archive, UnityMetaHelper.GetMeta(GetGuidFromFilePath(id, localPath)), $"{localPath}.meta", $"package/{file.Name}.meta");
 			}
 
 
@@ -196,22 +197,27 @@ namespace NUnityPackage.Core
 			return bytes;
 		}
 
-		private static string GetGuidFromContent(string content)
+		private static string GetGuidFromContent(string id, string content)
 		{
-			return HashUtils.GetMd5Hash(Encoding.UTF8.GetBytes(content));
+			return GetGuid(id, Encoding.UTF8.GetBytes(content));
 		}
 
-		private static string GetGuidFromFilePath(string path)
+		private static string GetGuidFromFilePath(string id, string path)
 		{
-			return HashUtils.GetMd5Hash(File.ReadAllBytes(path));
+			return GetGuid(id, File.ReadAllBytes(path));
 		}
 
-		private static string GetGuidFromStream(Stream stream)
+		private static string GetGuidFromStream(string id, Stream stream)
 		{
 			using var mem = new MemoryStream();
 			stream.CopyTo(mem);
 			var bytes = mem.ToArray();
-			return HashUtils.GetMd5Hash(bytes);
+			return GetGuid(id, bytes);
+		}
+
+		private static string GetGuid(string id, IEnumerable<byte> bytes)
+		{
+			return HashUtils.GetMd5Hash(bytes.Concat(Encoding.UTF8.GetBytes(id)).ToArray());
 		}
 
 		private static async Task WriteFile(TarOutputStream archive, string content, string localPath, string zipPath)
