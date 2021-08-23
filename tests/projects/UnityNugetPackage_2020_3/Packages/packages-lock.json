@@ -1,18 +1,27 @@
 {
   "dependencies": {
     "automapper": {
-      "version": "8.0.0",
+      "version": "10.1.1",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "http://localhost:8080"
     },
-    "automapper.extensions": {
-      "version": "2.1.0",
+    "automapper.collection": {
+      "version": "7.0.1",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "automapper": "8.0.0"
+        "automapper": "10.0.0"
+      },
+      "url": "http://localhost:8080"
+    },
+    "automapper.extensions.expressionmapping": {
+      "version": "4.1.1",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "automapper": "10.1.1"
       },
       "url": "http://localhost:8080"
     },
@@ -117,6 +126,13 @@
         "com.unity.modules.ui": "1.0.0",
         "com.unity.modules.imgui": "1.0.0"
       }
+    },
+    "system.runtime.compilerservices.unsafe": {
+      "version": "5.0.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "http://localhost:8080"
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",

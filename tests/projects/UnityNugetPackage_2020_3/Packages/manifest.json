@@ -4,7 +4,8 @@
       "name": "needle.nuget",
       "url": "http://localhost:8080",
       "scopes": [
-        "automapper"
+        "automapper",
+        "system.runtime.compilerservices.unsafe"
       ]
     },
     {
@@ -16,7 +17,8 @@
     }
   ],
   "dependencies": {
-    "automapper.extensions": "2.1.0",
+    "automapper.collection": "7.0.1",
+    "automapper.extensions.expressionmapping": "4.1.1",
     "com.needle.dummypackage": "0.0.6-pre",
     "com.needle.nuget-backend-helper": "file:../../needle.nuget.backend-helper",
     "com.unity.collab-proxy": "1.5.7",
@@ -27,6 +29,7 @@
     "com.unity.textmeshpro": "3.0.6",
     "com.unity.timeline": "1.4.8",
     "com.unity.ugui": "1.0.0",
+    "system.runtime.compilerservices.unsafe": "5.0.0",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",

@@ -29,6 +29,7 @@ MonoBehaviour:
     m_Url: http://localhost:8080
     m_Scopes:
     - automapper
+    - system.runtime.compilerservices.unsafe
     m_IsDefault: 0
     m_Capabilities: 0
   - m_Id: scoped:needle.glitch
@@ -48,6 +49,7 @@ MonoBehaviour:
       m_Url: http://localhost:8080
       m_Scopes:
       - automapper
+      - system.runtime.compilerservices.unsafe
       m_IsDefault: 0
       m_Capabilities: 0
     m_Modified: 0
@@ -55,4 +57,5 @@ MonoBehaviour:
     m_Url: http://localhost:8080
     m_Scopes:
     - automapper
+    - system.runtime.compilerservices.unsafe
     m_SelectedScopeIndex: 0
