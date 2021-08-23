@@ -96,8 +96,8 @@
         "com.unity.modules.imgui": "1.0.0"
       }
     },
-    "microsoft.extensions.objectpool": {
-      "version": "5.0.9",
+    "system.runtime.compilerservices.unsafe": {
+      "version": "5.0.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {},

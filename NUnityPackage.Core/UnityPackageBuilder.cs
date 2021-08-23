@@ -86,15 +86,19 @@ namespace NUnityPackage.Core
 				if (target.dependency == null) return;
 				foreach (var dep in target.dependency)
 				{
-					var id = dep.id;
 					var version = dep.version;
 
 					// ReSharper disable once VariableHidesOuterVariable
 					void Add(string version)
 					{
-						// TODO: parse [4.1.1-rc2-24027, ) to proper version string
+						if (!UnityAllowedDependencies.IsAllowed(dep.id, version))
+						{
+							logger?.LogTrace("Skip dependency: " + dep.id + "@" + dep.version + " because not allowed in Unity");
+							return;
+						}
+						var key = dep.id.ToLowerInvariant();
+						
 						package.dependencies ??= new Dictionary<string, string>();
-						var key = id.ToLowerInvariant();
 						if (!package.dependencies.ContainsKey(key))
 							package.dependencies.Add(key, version);
 					}

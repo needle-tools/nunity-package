@@ -44,7 +44,7 @@ namespace NUnityPackage.Controllers
 			var url = Request.Scheme + "://" + Request.Host.Host + ":" + Request.Host.Port;
 
 			_logger.LogInformation("Get " + packageName);
-			var packageRes = await NugetApi.GetPackageRegistrationResult(packageName);
+			var packageRes = await NugetApi.GetPackageRegistrationResult(packageName.ToLowerInvariant());
 			if (packageRes == null)
 			{
 				_logger.LogError("Could not find " + packageName + " on nuget");
