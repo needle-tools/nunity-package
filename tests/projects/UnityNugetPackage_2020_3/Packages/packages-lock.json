@@ -1,5 +1,21 @@
 {
   "dependencies": {
+    "automapper": {
+      "version": "8.0.0",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "http://localhost:8080"
+    },
+    "automapper.extensions": {
+      "version": "2.1.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "automapper": "8.0.0"
+      },
+      "url": "http://localhost:8080"
+    },
     "com.needle.dummypackage": {
       "version": "0.0.6-pre",
       "depth": 0,

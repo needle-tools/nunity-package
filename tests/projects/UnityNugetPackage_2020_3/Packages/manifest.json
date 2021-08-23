@@ -16,6 +16,7 @@
     }
   ],
   "dependencies": {
+    "automapper.extensions": "2.1.0",
     "com.needle.dummypackage": "0.0.6-pre",
     "com.needle.nuget-backend-helper": "file:../../needle.nuget.backend-helper",
     "com.unity.collab-proxy": "1.5.7",
