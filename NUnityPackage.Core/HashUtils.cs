@@ -20,15 +20,12 @@ namespace NUnityPackage.Core
 			try
 			{
 				algo ??= SHA1.Create();
-				
 				var data = algo.ComputeHash(bytes);
 				var sBuilder = new StringBuilder();
 				foreach (var t in data)
 				{
 					sBuilder.Append(t.ToString("x2"));
 				}
-
-				if (isOwned) algo.Dispose();
 				return sBuilder.ToString();
 			}
 			finally

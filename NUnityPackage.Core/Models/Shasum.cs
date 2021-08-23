@@ -12,6 +12,7 @@ namespace NUnityPackage.Core
 	[Serializable]
 	public class Shasum
 	{
+		public const string Extension = ".shasum";
 		public string shasum;
 		
 		// for serialization
@@ -22,12 +23,11 @@ namespace NUnityPackage.Core
 			shasum = HashUtils.GetSha1Hash(data);
 		}
 
-		public Shasum(string shasum)
+		public Shasum(string hash)
 		{
-			this.shasum = shasum;
+			this.shasum = hash;
 		}
 
-		public const string Extension = ".shasum";
 
 		public static string CreateFileContent(byte[] data)
 		{

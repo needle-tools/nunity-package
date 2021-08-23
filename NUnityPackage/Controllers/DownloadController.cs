@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NUnityPackage.Core;
@@ -29,12 +30,13 @@ namespace NUnityPackage.Controllers
 		{
 			_logger.LogInformation("Request download: " + packageId);
 
-			var bytes = await Globals.Cache.TryDownloadFile(packageId);
-			if (bytes != null)
-			{
-				_logger.LogInformation("Resolved from cache: " + packageId);
-			}
-			else
+			byte[] bytes;
+			// bytes = await Globals.Cache.TryDownloadFile(packageId);
+			// if (bytes != null)
+			// {
+			// 	_logger.LogInformation("Resolved from cache: " + packageId);
+			// }
+			// else
 			{
 				var version = packageId.Substring(packageName.Length+1, packageId.Length - packageName.Length - 5);
 				bytes = await UnityPackageBuilder.BuildTgzPackage(packageName, version, packageId, Globals.Cache, _logger);

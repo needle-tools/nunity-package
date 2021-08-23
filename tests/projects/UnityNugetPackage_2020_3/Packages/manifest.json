@@ -4,7 +4,7 @@
       "name": "needle.nuget",
       "url": "http://localhost:8080",
       "scopes": [
-        "newtonsoft"
+        "microsoft.extensions"
       ]
     },
     {

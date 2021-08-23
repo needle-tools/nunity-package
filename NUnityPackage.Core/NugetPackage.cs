@@ -35,14 +35,14 @@ namespace NUnityPackage.Core
 				{
 					try
 					{
-						XmlSerializer serializer = new XmlSerializer(typeof(NugetSpecificationNew));
+						XmlSerializer serializer = new XmlSerializer(typeof(NugetSpecification));
 						await using var stream = entry.Open();
 						// var content = new MemoryStream();
 						// await entry.Open().CopyToAsync(content);
 						// var xml = Encoding.UTF8.GetString(content.ToArray());
 						var reader = new NamespaceIgnorantXmlTextReader(new StreamReader(stream));
 						reader.Namespaces = false;
-						var spec = (NugetSpecificationNew)serializer.Deserialize(reader);
+						var spec = (NugetSpecification)serializer.Deserialize(reader);
 
 						// var reader = new StreamReader(entry.Open());
 						// var text = await reader.ReadToEndAsync();

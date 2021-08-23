@@ -69,9 +69,10 @@ namespace NUnityPackage.Core
 								sha = await Shasum.TryGet(fileId, cache);
 								if (sha == null)
 								{
-									logger.LogError($"Built package {fileId} but sha is still not found, will skip this");
+									logger?.LogError($"Built package {fileId} but sha is still not found, will skip this");
 									continue;
 								}
+								logger?.LogInformation("Cached sha: " + id + " = " + sha.shasum);
 							}
 						}
 

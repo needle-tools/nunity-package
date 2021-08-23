@@ -87,13 +87,16 @@ namespace NUnityPackage.Core
 			{
 				foreach (var dep in spec.metadata.dependencies)
 				{
-					switch (dep.targetFramework)
+					if(dep.targetFramework.StartsWith(".NETStandard"))
+						AddDependency(dep);
+					else
 					{
-						case ".NETStandard1.3":
-						case ".NETStandard2.0":
-						case ".NETFramework4.5":
-							AddDependency(dep);
-							break;
+						switch (dep.targetFramework)
+						{
+							case ".NETFramework4.5":
+								AddDependency(dep);
+								break;
+						}
 					}
 				}
 			}
@@ -162,12 +165,12 @@ namespace NUnityPackage.Core
 				Shasum.CreateAndUpload(bytes, cacheName, cache);
 			}
 
-			if (dir.Exists)
-				dir.Delete(true);
-			if (File.Exists(localPackagePath))
-				File.Delete(localPackagePath);
-			if (Directory.Exists(tempDir))
-				Directory.Delete(tempDir);
+			// if (dir.Exists)
+			// 	dir.Delete(true);
+			// if (File.Exists(localPackagePath))
+			// 	File.Delete(localPackagePath);
+			// if (Directory.Exists(tempDir))
+			// 	Directory.Delete(tempDir);
 
 			return bytes;
 		}
