@@ -94,8 +94,9 @@ namespace NUnityPackage.Core
 					{
 						// TODO: parse [4.1.1-rc2-24027, ) to proper version string
 						package.dependencies ??= new Dictionary<string, string>();
-						if (!package.dependencies.ContainsKey(id))
-							package.dependencies.Add(id.ToLowerInvariant(), version);
+						var key = id.ToLowerInvariant();
+						if (!package.dependencies.ContainsKey(key))
+							package.dependencies.Add(key, version);
 					}
 					if (SemVersion.TryParse(version, out var ver))
 					{
