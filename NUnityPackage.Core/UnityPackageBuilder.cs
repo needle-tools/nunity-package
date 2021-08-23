@@ -187,12 +187,15 @@ namespace NUnityPackage.Core
 				Shasum.CreateAndUpload(bytes, cacheName, cache);
 			}
 
-			if (dir.Exists)
-				dir.Delete(true);
-			if (File.Exists(localPackagePath))
-				File.Delete(localPackagePath);
-			if (Directory.Exists(tempDir))
-				Directory.Delete(tempDir);
+			if (!Globals.IsDevelopmentEnvironment)
+			{
+				if (dir.Exists)
+					dir.Delete(true);
+				if (File.Exists(localPackagePath))
+					File.Delete(localPackagePath);
+				if (Directory.Exists(tempDir))
+					Directory.Delete(tempDir);
+			}
 
 			return bytes;
 		}
