@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NUnityPackage.Core.Interfaces;
 
 namespace NUnityPackage.Core
 {
@@ -10,7 +11,7 @@ namespace NUnityPackage.Core
 		public string name;
 		public Dictionary<string, Version> versions = new Dictionary<string, Version>();
 
-		public class Version
+		public class Version : IHaveUnityDependencies
 		{
 			public string name;
 			public string displayName;
@@ -19,6 +20,7 @@ namespace NUnityPackage.Core
 			public string readmeFilename;
 			public string description;
 			public Dist dist;
+			public Dictionary<string, string> dependencies { get; set; }
 
 			public class Dist
 			{
@@ -94,6 +96,9 @@ namespace NUnityPackage.Core
 							version = details.version,
 							dist = dist
 						};
+						
+						if(details.dependencyGroups != null)
+							UnityPackageBuilder.AddRelevantDependencies(details.dependencyGroups, inst, logger);
 
 
 						rr.versions.Add(details.version, inst);

@@ -2,7 +2,7 @@
 {
 	public class UnityMetaHelper
 	{
-    public static string GetMeta(string guid = "305c24821ff995c408403969a18e2c77")
+    public static string GetMeta(string guid)
     {
       return pluginDllMetaTemplate.Replace("<guid>", guid);
     }

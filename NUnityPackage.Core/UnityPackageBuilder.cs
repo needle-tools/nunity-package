@@ -15,6 +15,7 @@ using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using NUnityPackage.Core.Interfaces;
 using Semver;
 
 namespace NUnityPackage.Core
@@ -55,7 +56,9 @@ namespace NUnityPackage.Core
 			unityPackage.license = meta.license;
 			unityPackage.licensesUrl = meta.licenseUrl;
 			unityPackage.documentationUrl = meta.projectUrl;
-			AddRelevantDependencies(spec, unityPackage, logger);
+			
+			if(meta?.dependencies != null)
+				AddRelevantDependencies(meta.dependencies, unityPackage, logger);
 
 			logger?.LogInformation("Downloading " + packageName + " as " + packageId);
 			var p = await BuildPackageTgz(unityPackage, package, cache, packageId);
@@ -63,8 +66,20 @@ namespace NUnityPackage.Core
 			return p;
 		}
 
-		private static void AddRelevantDependencies(NugetSpecification spec, UnityPackage package, ILogger logger = null)
+		public static void AddRelevantDependencies(IEnumerable<TargetFramework> dependencies, IHaveUnityDependencies package, ILogger logger = null)
 		{
+			foreach (var dep in dependencies)
+			{
+				if (dep.targetFramework == null)
+				{
+					AddDependency(dep);
+				}
+				else if(dep.targetFramework.StartsWith(".NETStandard"))
+					AddDependency(dep);
+				else if(dep.targetFramework.StartsWith(".NETFramework4.5"))
+					AddDependency(dep);
+			}
+			
 			void AddDependency(TargetFramework target)
 			{
 				// e.g. System.Drawing 1.0.0-beta004 https://www.nuget.org/packages/CoreCompat.System.Drawing/1.0.0-beta004
@@ -100,24 +115,6 @@ namespace NUnityPackage.Core
 					}
 				}
 			}
-
-			if (spec != null && spec.metadata != null)
-			{
-				foreach (var dep in spec.metadata.dependencies)
-				{
-					if(dep.targetFramework.StartsWith(".NETStandard"))
-						AddDependency(dep);
-					else
-					{
-						switch (dep.targetFramework)
-						{
-							case ".NETFramework4.5":
-								AddDependency(dep);
-								break;
-						}
-					}
-				}
-			}
 		}
 
 		private static async Task<byte[]> BuildPackageTgz(UnityPackage package, NugetPackage nugetPackage, Caching cache, string cacheName)
@@ -135,7 +132,7 @@ namespace NUnityPackage.Core
 			await using var archive = new TarOutputStream(gzipStream, Encoding.Default);
 
 			var localPackageDir = tempDir + "/package";
-			var dir = Directory.CreateDirectory(localPackageDir);
+			Directory.CreateDirectory(localPackageDir);
 
 			// save package json
 			var jsonPathZip = "package/package.json";
@@ -158,7 +155,8 @@ namespace NUnityPackage.Core
 				dllStream.Position = 0;
 				StreamUtils.Copy(dllStream, archive, writeBuffer);
 				archive.CloseEntry();
-				await WriteFile(archive, UnityMetaHelper.GetMeta(GetGuidFromStream(dllStream)), $"{dllPathLocal}.meta", $"{dllPathZip}.meta");
+				var guid = GetGuidFromStream(dllStream);
+				await WriteFile(archive, UnityMetaHelper.GetMeta(guid), $"{dllPathLocal}.meta", $"{dllPathZip}.meta");
 			}
 
 			await foreach (var file in nugetPackage.GetLicenseFiles())
@@ -205,11 +203,10 @@ namespace NUnityPackage.Core
 
 		private static string GetGuidFromStream(Stream stream)
 		{
-			using (var mem = new MemoryStream())
-			{
-				stream.CopyTo(mem);
-				return HashUtils.GetMd5Hash(mem.ToArray());
-			}
+			using var mem = new MemoryStream();
+			stream.CopyTo(mem);
+			var bytes = mem.ToArray();
+			return HashUtils.GetMd5Hash(bytes);
 		}
 
 		private static async Task WriteFile(TarOutputStream archive, string content, string localPath, string zipPath)

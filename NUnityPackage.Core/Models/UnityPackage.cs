@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using NUnityPackage.Core.Interfaces;
 
 namespace NUnityPackage.Core
 {
 	[Serializable]
-	public class UnityPackage
+	public class UnityPackage : IHaveUnityDependencies
 	{
 		public string name;
 		public string version;
@@ -16,7 +17,7 @@ namespace NUnityPackage.Core
 		public string documentationUrl;
 		public string license;
 		public string licensesUrl;
-		public Dictionary<string, string> dependencies;
+		public Dictionary<string, string> dependencies { get; set; }
 
 		[JsonIgnore]
 		public string id => name + "-" + version;

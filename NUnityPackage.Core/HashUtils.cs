@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace NUnityPackage.Core
@@ -12,7 +13,7 @@ namespace NUnityPackage.Core
 		
 		public static string GetSha1Hash(byte[] bytes)
 		{
-			return GetHash(bytes, SHA1.Create(), true);
+			return GetHash(bytes, new SHA1Managed(), true);
 		}
 
 		public static string GetHash(byte[] bytes, HashAlgorithm algo = null, bool isOwned = true)
@@ -21,12 +22,7 @@ namespace NUnityPackage.Core
 			{
 				algo ??= SHA1.Create();
 				var data = algo.ComputeHash(bytes);
-				var sBuilder = new StringBuilder();
-				foreach (var t in data)
-				{
-					sBuilder.Append(t.ToString("x2"));
-				}
-				return sBuilder.ToString();
+				return BitConverter.ToString(data).Replace("-", string.Empty).ToLower();
 			}
 			finally
 			{

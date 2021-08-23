@@ -1,4 +1,6 @@
 ﻿using System.Xml.Serialization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace NUnityPackage.Core
 {
@@ -40,7 +42,8 @@ namespace NUnityPackage.Core
 	{
 		[XmlAttribute]
 		public string targetFramework;
-		[XmlElement("dependency")]
+		[XmlElement("dependency")]  
+		[JsonProperty("dependencies")]
 		public Dependency[] dependency;
 	}
 
@@ -49,7 +52,7 @@ namespace NUnityPackage.Core
 		[XmlAttribute]
 		public string id;
 
-		[XmlAttribute]
+		[XmlAttribute, JsonProperty("range")]
 		public string version;
 	}
 

@@ -46,6 +46,7 @@ namespace NUnityPackage.Core
 			public string[] tags;
 			public string title;
 			public string version;
+			public TargetFramework[] dependencyGroups;
 		}
 	}
 
