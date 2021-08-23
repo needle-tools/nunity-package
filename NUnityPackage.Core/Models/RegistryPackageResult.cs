@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NUnityPackage.Core.Interfaces;
+using Semver;
 
 namespace NUnityPackage.Core
 {
@@ -20,6 +21,8 @@ namespace NUnityPackage.Core
 			public string readmeFilename;
 			public string description;
 			public Dist dist;
+			public string documentationUrl;
+			public string licensesUrl;
 			public Dictionary<string, string> dependencies { get; set; }
 
 			public class Dist
@@ -48,8 +51,9 @@ namespace NUnityPackage.Core
 			{
 				if (it.items == null) continue;
 				if (rr.versions.Count >= maxVersions) break;
-				foreach (var p in it.items)
+				for (var index = it.items.Length - 1; index >= 0; index--)
 				{
+					var p = it.items[index];
 					if (p == null) continue;
 					if (rr.versions.Count >= maxVersions) break;
 					var details = p.catalogEntry;
@@ -58,6 +62,12 @@ namespace NUnityPackage.Core
 					if (!rr.versions.ContainsKey(details.version))
 					{
 						if (rr.versions.Count >= maxVersions) break;
+
+						if (!SemVersion.TryParse(details.version, out _))
+						{
+							logger?.LogError("Invalid semver: " + details.id + "; " + details.version + ", url: " + details.projectUrl);
+							continue;
+						}
 
 						var fileId = $"{id}-{details.version}.tgz";
 
@@ -74,6 +84,7 @@ namespace NUnityPackage.Core
 									logger?.LogError($"Built package {fileId} but sha is still not found, will skip this");
 									continue;
 								}
+
 								logger?.LogInformation("Cached sha: " + id + " = " + sha.shasum);
 							}
 						}
@@ -94,10 +105,12 @@ namespace NUnityPackage.Core
 										? details.id
 										: id,
 							version = details.version,
-							dist = dist
+							dist = dist,
+							documentationUrl = details.projectUrl,
+							licensesUrl = details.licenseUrl,
 						};
-						
-						if(details.dependencyGroups != null)
+
+						if (details.dependencyGroups != null)
 							UnityPackageBuilder.AddRelevantDependencies(details.dependencyGroups, inst, logger);
 
 

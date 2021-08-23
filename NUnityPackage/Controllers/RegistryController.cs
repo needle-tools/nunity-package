@@ -57,7 +57,7 @@ namespace NUnityPackage.Controllers
 			var json = string.Empty;
 			if (res != null)
 			{
-				_logger.LogInformation("Received package result, building json");
+				_logger.LogInformation("Received package result, building json: " + res.name);
 				var settings = new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore };
 				json = JsonConvert.SerializeObject(res, Formatting.Indented, settings);
 			}
